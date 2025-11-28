@@ -2,6 +2,7 @@
 const SUITS = ['spades', 'hearts', 'diamonds', 'clubs'];
 const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'jack', 'queen', 'king', 'ace'];
 const JOKER = 'black_joker';
+const RED_JOKER = 'red_joker';
 
 // キャラクター定義を読み込むための変数
 let CHARACTERS = {};
@@ -112,269 +113,16 @@ function initializeGame() {
 
 // キャラクター定義を読み込む関数
 function loadCharacterDefinitions() {
-    // 実際のプロジェクトでは、JSONファイルからキャラクター定義を読み込みます
-    // ここでは簡略化のために直接定義します
-    
-    // キャラクター定義をCHARACTERSオブジェクトに格納
-    CHARACTERS = {
-        miriya: { 
-            name: "みりや", 
-            MBTI: "ISTJ",
-            image: 'public/images/characters/miriya.png',
-            aggressiveness: 0.3,
-            riskTolerance: 0.1,
-            cooperativeness: 0.7,
-            cardCountingSkill: 0.9,
-            emotionFactor: 0.1,
-            bluffLikelihood: 0.1,
-            dialogues: {
-                play: "任務執行するわ。",
-                win: "当然の結果ね。",
-                pass: "今回は見送ります。",
-                revolution: "状況が変わったわね。"
-            }
-        },
-        hitori: { 
-            name: "ひとり", 
-            MBTI: "ESTP",
-            image: 'public/images/characters/hitori.png',
-            aggressiveness: 0.8,
-            riskTolerance: 0.7,
-            cooperativeness: 0.3,
-            cardCountingSkill: 0.5,
-            emotionFactor: 0.6,
-            bluffLikelihood: 0.5,
-            dialogues: {
-                play: "俺様の出番だ！",
-                win: "当然だな！",
-                pass: "今回は退くか。",
-                revolution: "おもしろくなってきたな！"
-            }
-        },
-        ketsui: { 
-            name: "けつい", 
-            MBTI: "ISTP",
-            image: 'public/images/characters/ketsui.png',
-            aggressiveness: 0.5,
-            riskTolerance: 0.4,
-            cooperativeness: 0.5,
-            cardCountingSkill: 0.7,
-            emotionFactor: 0.2,
-            bluffLikelihood: 0.3,
-            dialogues: {
-                play: "行くぞ。",
-                win: "うまくいったな。",
-                pass: "今回はパスさせてもらう。",
-                revolution: "流れが変わったな。"
-            }
-        },
-        ameri: { 
-            name: "あめり", 
-            MBTI: "INTP",
-            image: 'public/images/characters/ameri.png',
-            aggressiveness: 0.3,
-            riskTolerance: 0.2,
-            cooperativeness: 0.6,
-            cardCountingSkill: 0.95,
-            emotionFactor: 0.1,
-            bluffLikelihood: 0.2,
-            dialogues: {
-                play: "理論上これでいいはず。",
-                win: "計算通りだったね。",
-                pass: "リスクが大きすぎる。",
-                revolution: "面白い変数が現れた。"
-            }
-        },
-        shogo: { 
-            name: "しょうご", 
-            MBTI: "ENFJ",
-            image: 'public/images/characters/shogo.png',
-            aggressiveness: 0.4,
-            riskTolerance: 0.3,
-            cooperativeness: 0.9,
-            cardCountingSkill: 0.6,
-            emotionFactor: 0.7,
-            bluffLikelihood: 0.2,
-            dialogues: {
-                play: "みんなについていくよ！",
-                win: "チームの勝利だ！",
-                pass: "今回は皆のことを考えるとパスかな。",
-                revolution: "状況が変わったね、皆どうする？"
-            }
-        },
-        yuko: { 
-            name: "ゆこ", 
-            MBTI: "INFJ",
-            image: 'public/images/characters/yuko.png',
-            aggressiveness: 0.2,
-            riskTolerance: 0.2,
-            cooperativeness: 0.8,
-            cardCountingSkill: 0.8,
-            emotionFactor: 0.5,
-            bluffLikelihood: 0.3,
-            dialogues: {
-                play: "この一手で...",
-                win: "思った通りの結果。",
-                pass: "今は様子を見た方がいい。",
-                revolution: "予感が的中したわ。"
-            }
-        },
-        akira: { 
-            name: "あきら", 
-            MBTI: "ENTJ",
-            image: 'public/images/characters/akira.png',
-            aggressiveness: 0.85,
-            riskTolerance: 0.6,
-            cooperativeness: 0.4,
-            cardCountingSkill: 0.8,
-            emotionFactor: 0.3,
-            bluffLikelihood: 0.4,
-            dialogues: {
-                play: "勝利は必然だ！",
-                win: "当然の結果だ。",
-                pass: "戦略の一環としてパスする。",
-                revolution: "面白い展開だな。"
-            }
-        },
-        tomoki: { 
-            name: "ともき", 
-            MBTI: "ESTJ",
-            image: 'public/images/characters/tomoki.png',
-            aggressiveness: 0.6,
-            riskTolerance: 0.4,
-            cooperativeness: 0.5,
-            cardCountingSkill: 0.7,
-            emotionFactor: 0.2,
-            bluffLikelihood: 0.1,
-            dialogues: {
-                play: "正しい手を打つ！",
-                win: "正攻法の勝利だ。",
-                pass: "ルールに従ってパスする。",
-                revolution: "秩序が乱れるとはな。"
-            }
-        },
-        wataru: { 
-            name: "わたる", 
-            MBTI: "ISTJ",
-            image: 'public/images/characters/wataru.png',
-            aggressiveness: 0.4,
-            riskTolerance: 0.2,
-            cooperativeness: 0.6,
-            cardCountingSkill: 0.85,
-            emotionFactor: 0.1,
-            bluffLikelihood: 0.1,
-            dialogues: {
-                play: "正確に実行する。",
-                win: "完璧な結果だ。",
-                pass: "今回は見送る。",
-                revolution: "計画が狂ったか。"
-            }
-        },
-        zakuro: { 
-            name: "ざくろ", 
-            MBTI: "INTJ",
-            image: 'public/images/characters/zakuro.png',
-            aggressiveness: 0.4,
-            riskTolerance: 0.3,
-            cooperativeness: 0.4,
-            cardCountingSkill: 0.9,
-            emotionFactor: 0.1,
-            bluffLikelihood: 0.3,
-            dialogues: {
-                play: "計算通りに進む。",
-                win: "私の勝利だ。",
-                pass: "今回は様子を見守る。",
-                revolution: "想定外の事態か。"
-            }
-        },
-        kotori: { 
-            name: "ことり", 
-            MBTI: "INTP",
-            image: 'public/images/characters/kotori.png',
-            aggressiveness: 0.3,
-            riskTolerance: 0.5,
-            cooperativeness: 0.5,
-            cardCountingSkill: 0.7,
-            emotionFactor: 0.6,
-            bluffLikelihood: 0.4,
-            dialogues: {
-                play: "これでどうかな？",
-                win: "楽勝楽勝～♪",
-                pass: "面倒だからパスしとくわ。",
-                revolution: "おもしろくなってきたじゃない！"
-            }
-        },
-        mikina: { 
-            name: "みきな", 
-            MBTI: "ENFP",
-            image: 'public/images/characters/mikina.png',
-            aggressiveness: 0.6,
-            riskTolerance: 0.6,
-            cooperativeness: 0.7,
-            cardCountingSkill: 0.5,
-            emotionFactor: 0.8,
-            bluffLikelihood: 0.5,
-            dialogues: {
-                play: "わくわく！やってみる！",
-                win: "やったぁ！勝ったよ！",
-                pass: "今回はパスかな～。",
-                revolution: "こんなこともあるんだね！"
-            }
-        },
-        iseri: { 
-            name: "いせり", 
-            MBTI: "ESFP",
-            image: 'public/images/characters/iseri.png',
-            aggressiveness: 0.7,
-            riskTolerance: 0.7,
-            cooperativeness: 0.6,
-            cardCountingSkill: 0.4,
-            emotionFactor: 0.9,
-            bluffLikelihood: 0.6,
-            dialogues: {
-                play: "いっくよ～！",
-                win: "やったやった！",
-                pass: "パスパス～！",
-                revolution: "なんかすご～い！"
-            }
-        },
-        maria: { 
-            name: "まりあ", 
-            MBTI: "ISFJ",
-            image: 'public/images/characters/maria.png',
-            aggressiveness: 0.2,
-            riskTolerance: 0.1,
-            cooperativeness: 0.9,
-            cardCountingSkill: 0.6,
-            emotionFactor: 0.8,
-            bluffLikelihood: 0.1,
-            dialogues: {
-                play: "神のご加護がありますように...",
-                win: "ありがとうございます。",
-                pass: "今回はお譲りします。",
-                revolution: "神様...何故なのですか..."
-            }
-        },
-        migiwa: { 
-            name: "みぎわ", 
-            MBTI: "ESFJ",
-            image: 'public/images/characters/migiwa.png',
-            aggressiveness: 0.5,
-            riskTolerance: 0.3,
-            cooperativeness: 0.9,
-            cardCountingSkill: 0.6,
-            emotionFactor: 0.7,
-            bluffLikelihood: 0.2,
-            dialogues: {
-                play: "これでどうでしょうか！",
-                win: "皆さんのおかげです！",
-                pass: "今回はパスさせていただきます！",
-                revolution: "状況が変わりましたね！"
-            }
-        }
-        // 他のキャラクターも同様に定義します...
-        // ここでは省略しますが、実際の実装ではすべてのキャラクターを定義する必要があります
-    };
+    // JSONファイルからキャラクター定義を読み込む
+    fetch('public/characters/character_defs.json')
+        .then(response => response.json())
+        .then(data => {
+            // データをCHARACTERSオブジェクトに格納
+            data.forEach(character => {
+                CHARACTERS[character.id] = character;
+            });
+        })
+        .catch(error => console.error('キャラクター定義の読み込みエラー:', error));
 }
 
 // キャラクター選択オプションを生成する関数
@@ -389,7 +137,7 @@ function generateCharacterOptions() {
         characterOption.dataset.character = characterId;
         
         characterOption.innerHTML = `
-            <img src="${character.image}" alt="${character.name}" width="50">
+            <img src="${character.portrait}" alt="${character.name}" width="50">
             <p>${character.name} (${character.MBTI})</p>
         `;
         
@@ -453,6 +201,40 @@ function showDialogue(text, duration = 3000) {
     }, duration);
 }
 
+// ランダムなセリフを取得
+function getRandomDialogue(character, situation) {
+    // pairLinesのチェック
+    if (situation === 'play' || situation === 'pressure' || situation === 'antiPressure' || situation === 'win' || situation === 'pass') {
+        // 場の他のプレイヤーをチェック
+        for (let i = 1; i < gameState.players.length; i++) {
+            const player = gameState.players[i];
+            if (player.character && player.character !== character.id && character.pairLinesDetailed) {
+                const pairLines = character.pairLinesDetailed[player.character];
+                if (pairLines && pairLines[situation]) {
+                    const lines = pairLines[situation];
+                    return lines[Math.floor(Math.random() * lines.length)];
+                }
+            }
+        }
+    }
+    
+    // 通常のvoiceLinesDetailedからセリフを取得
+    if (character.voiceLinesDetailed && character.voiceLinesDetailed[situation]) {
+        const lines = character.voiceLinesDetailed[situation];
+        return lines[Math.floor(Math.random() * lines.length)];
+    }
+    
+    // デフォルトのセリフ
+    const defaultLines = {
+        play: "これでどうかな？",
+        win: "勝った！",
+        pass: "パスするね。",
+        revolution: "革命だ！"
+    };
+    
+    return defaultLines[situation] || "...";
+}
+
 // デッキの作成
 function createDeck() {
     gameState.deck = [];
@@ -467,6 +249,7 @@ function createDeck() {
     // ジョーカーを追加
     gameState.deck.push(JOKER);
     gameState.deck.push(JOKER);
+    gameState.deck.push(RED_JOKER);
 }
 
 // デッキのシャッフル
@@ -499,6 +282,8 @@ function sortPlayerHand() {
         // ジョーカーは最後に
         if (a === JOKER) return 1;
         if (b === JOKER) return -1;
+        if (a === RED_JOKER) return 1;
+        if (b === RED_JOKER) return -1;
         
         // スートで比較
         const suitA = a.split('_of_')[1];
@@ -602,7 +387,7 @@ function isValidPlay(cardNames) {
     
     // ジョーカーを除いたカードのランクを取得
     const ranks = cardNames
-        .filter(name => name !== JOKER)
+        .filter(name => name !== JOKER && name !== RED_JOKER)
         .map(name => name.split('_of_')[0]);
     
     // すべてのカードが同じランクかチェック
@@ -631,7 +416,7 @@ function checkRevolution() {
     // 場に出たカードが4枚で同じランクなら革命
     if (gameState.field.length === 4) {
         const ranks = gameState.field
-            .filter(name => name !== JOKER)
+            .filter(name => name !== JOKER && name !== RED_JOKER)
             .map(name => name.split('_of_')[0]);
         
         if (ranks.length === 4 && ranks.every(rank => rank === ranks[0])) {
@@ -739,7 +524,17 @@ function aiTurn() {
             // セリフを表示
             const character = player.character ? CHARACTERS[player.character] : null;
             if (character) {
-                showDialogue(`${player.name}: ${character.dialogues.play}`);
+                // プレイヤーがカードを出すときのセリフを取得
+                let dialogue = getRandomDialogue(character, 'play');
+                // pairLinesのチェック
+                if (gameState.players[0].character && character.pairLinesDetailed && character.pairLinesDetailed[gameState.players[0].character]) {
+                    const pairLines = character.pairLinesDetailed[gameState.players[0].character];
+                    if (pairLines['play']) {
+                        const lines = pairLines['play'];
+                        dialogue = lines[Math.floor(Math.random() * lines.length)];
+                    }
+                }
+                showDialogue(`${player.name}: ${dialogue}`);
             }
             
             // 上がりチェック
@@ -749,7 +544,17 @@ function aiTurn() {
                 
                 // 上がりセリフを表示
                 if (character) {
-                    showDialogue(`${player.name}: ${character.dialogues.win}`);
+                    // プレイヤーが上がったときのセリフを取得
+                    let dialogue = getRandomDialogue(character, 'win');
+                    // pairLinesのチェック
+                    if (gameState.players[0].character && character.pairLinesDetailed && character.pairLinesDetailed[gameState.players[0].character]) {
+                        const pairLines = character.pairLinesDetailed[gameState.players[0].character];
+                        if (pairLines['win']) {
+                            const lines = pairLines['win'];
+                            dialogue = lines[Math.floor(Math.random() * lines.length)];
+                        }
+                    }
+                    showDialogue(`${player.name}: ${dialogue}`);
                 }
                 
                 alert(`${player.name} さんが上がりました！ 階級: ${player.rank}`);
@@ -770,7 +575,17 @@ function aiTurn() {
             // パスセリフを表示
             const character = player.character ? CHARACTERS[player.character] : null;
             if (character) {
-                showDialogue(`${player.name}: ${character.dialogues.pass}`);
+                // プレイヤーがパスするときのセリフを取得
+                let dialogue = getRandomDialogue(character, 'pass');
+                // pairLinesのチェック
+                if (gameState.players[0].character && character.pairLinesDetailed && character.pairLinesDetailed[gameState.players[0].character]) {
+                    const pairLines = character.pairLinesDetailed[gameState.players[0].character];
+                    if (pairLines['pass']) {
+                        const lines = pairLines['pass'];
+                        dialogue = lines[Math.floor(Math.random() * lines.length)];
+                    }
+                }
+                showDialogue(`${player.name}: ${dialogue}`);
             }
         }
     }
@@ -792,6 +607,9 @@ function selectCardForAI(player) {
     
     // 有効なカードをフィルタリング
     const validCards = player.hand.filter(card => {
+        // ジョーカーは常に有効
+        if (card === JOKER || card === RED_JOKER) return true;
+        
         const cardRank = card.split('_of_')[0];
         
         // 場にカードがない場合はすべて有効
@@ -815,11 +633,21 @@ function selectCardForAI(player) {
         return null;
     }
     
+    // ジョーカーが含まれている場合、それを優先的に選択
+    const jokers = validCards.filter(card => card === JOKER || card === RED_JOKER);
+    if (jokers.length > 0 && Math.random() < 0.7) { // 70%の確率でジョーカーを使用
+        return jokers[Math.floor(Math.random() * jokers.length)];
+    }
+    
     // キャラクターのパラメータに基づいてカードを選択
     if (character) {
         // 攻撃性が高い場合は強いカードを優先
         if (character.aggressiveness > 0.5) {
             validCards.sort((a, b) => {
+                // ジョーカーは最強
+                if (a === JOKER || a === RED_JOKER) return -1;
+                if (b === JOKER || b === RED_JOKER) return 1;
+                
                 const rankA = RANKS.indexOf(a.split('_of_')[0]);
                 const rankB = RANKS.indexOf(b.split('_of_')[0]);
                 
@@ -835,6 +663,10 @@ function selectCardForAI(player) {
         // 協調性が高い場合は弱いカードを優先
         if (character.cooperativeness > 0.5) {
             validCards.sort((a, b) => {
+                // ジョーカーは最強
+                if (a === JOKER || a === RED_JOKER) return -1;
+                if (b === JOKER || b === RED_JOKER) return 1;
+                
                 const rankA = RANKS.indexOf(a.split('_of_')[0]);
                 const rankB = RANKS.indexOf(b.split('_of_')[0]);
                 
@@ -897,3 +729,4 @@ function resetGame() {
     });
     gameState.selectedCharacters = [];
 }
+
