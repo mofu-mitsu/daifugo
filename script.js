@@ -1,732 +1,1157 @@
-// カード関連の定義
+// ==========================================
+// 定数・設定
+// ==========================================
 const SUITS = ['spades', 'hearts', 'diamonds', 'clubs'];
-const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'jack', 'queen', 'king', 'ace'];
+const RANKS = ['3', '4', '5', '6', '7', '8', '9', '10', 'jack', 'queen', 'king', 'ace', '2']; 
 const JOKER = 'black_joker';
 const RED_JOKER = 'red_joker';
+const RANKINGS = ['大富豪', '富豪', '貧民', '大貧民'];
 
-// キャラクター定義を読み込むための変数
 let CHARACTERS = {};
 
-// 階級定義
-const RANKINGS = [
-    '大富豪',
-    '富豪',
-    '平民',
-    '貧民',
-    '大貧民'
+const CLASS_2_1 = [
+    "miriya", "hitori", "ketsui", "ameri", "shogo", "yuko", "akira", "tomoki", 
+    "wataru", "zakuro", "kotori", "mikina", "iseri", "maria", "migiwa", "ryogo", "jiha", "rei"
+];
+const CLASS_2_2 = [
+    "yae", "akari", "enishi", "matoi", "suzu", "arin", "yasashi", "rui", 
+    "makishi", "shige", "hakomo", "shizuka", "mirin", "yuzu", "shinon", "hikari", "kozue", "yamato"
 ];
 
-// ゲーム状態
+// トリプルイベント定義
+const TRIANGLE_EVENTS = [
+  {
+    "id": "migiwa_ketsui_ryogo",
+    "characters": ["migiwa", "ketsui", "ryogo"],
+    "lines": {
+      "start": {
+        "migiwa": [
+          "ちょ、二人してウチの相手すんの！？水兵部三つ巴バトルじゃな！！",
+          "けついもりょうごも本気顔しとるけど…ウチが一番に上がるけぇ覚悟しとき！！"
+        ],
+        "ketsui": [
+          "ほいほい…水兵部三人揃うとかエモいのぉ。船長として負けられんわ。",
+          "みぎわもりょうごも、ええ顔しとるの。ほうじゃけぇワシも燃えるんよ。"
+        ],
+        "ryogo": [
+          "水兵部三人か…データ上、この組み合わせは接戦になる確率が高いな。",
+          "けついの直感とみぎわの勢い…両方同時は情報量多いけど、勝ち筋は見えてる。"
+        ]
+      }
+    }
+  }
+];
+
 let gameState = {
     players: [],
     currentPlayerIndex: 0,
-    field: [],
+    lastPlayIndex: -1,
+    field: [], 
     deck: [],
     playerName: '',
+    playerAvatar: null, 
     selectedCards: [],
     revolution: false,
     selectedCharacters: [],
-    finishedPlayers: [], // 上がったプレイヤーを追跡
-    dialogueElement: null // セリフ表示要素を追加
+    finishedPlayers: [],
+    round: 1, 
+    prevRanks: {},
+    isSpectator: false,
+    isProcessing: false // ★重要：処理中フラグ（二重動作防止）
 };
 
+// ==========================================
 // DOM要素
+// ==========================================
 const setupScreen = document.getElementById('setup-screen');
 const gameScreen = document.getElementById('game-screen');
 const playerNameInput = document.getElementById('player-name');
+const playerImageInput = document.getElementById('player-image');
 const startGameButton = document.getElementById('start-game');
+const showRulesButton = document.getElementById('show-rules');
+const rulesModal = document.getElementById('rules-modal');
+const closeModal = document.getElementsByClassName('close')[0];
 const fieldElement = document.getElementById('field');
 const playersElement = document.getElementById('players');
 const playerHandElement = document.getElementById('player-hand');
 const playButton = document.getElementById('play-button');
 const passButton = document.getElementById('pass-button');
-const characterSelectionElement = document.getElementById('ai-character-selection');
+const gameNotification = document.getElementById('game-notification');
+const selectionStatus = document.getElementById('selection-status');
 
-// イベントリスナー
-startGameButton.addEventListener('click', startGame);
-playButton.addEventListener('click', playSelectedCards);
-passButton.addEventListener('click', passTurn);
+const characterModal = document.getElementById('character-modal');
+const closeCharacterModal = document.getElementById('close-character-modal');
+const characterGrid = document.getElementById('character-grid');
+const selectedCharactersList = document.getElementById('selected-characters-list');
+const confirmSelectionBtn = document.getElementById('confirm-selection');
 
-// ゲーム開始
-function startGame() {
-    const name = playerNameInput.value.trim() || 'プレイヤー';
-    gameState.playerName = name;
-    setupScreen.style.display = 'none';
-    gameScreen.style.display = 'block';
-    initializeGame();
+const characterPortrait = document.getElementById('character-portrait');
+const characterName = document.getElementById('character-name');
+const characterMbti = document.getElementById('character-mbti');
+const characterEnneagram = document.getElementById('character-enneagram');
+const characterDescription = document.getElementById('character-description');
+
+const resultModal = document.getElementById('result-modal');
+const resultList = document.getElementById('result-list');
+const nextRoundButton = document.getElementById('next-round-button');
+const titleButton = document.getElementById('title-button');
+
+const selectCharactersBtn = document.getElementById('select-characters-btn');
+const spectatorModeBtn = document.getElementById('spectator-mode-btn');
+
+// ==========================================
+// 初期化
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    loadCharacterDefinitions();
+    selectCharactersBtn.addEventListener('click', () => openCharacterModal(false));
+    spectatorModeBtn.addEventListener('click', () => openCharacterModal(true));
+});
+
+if (playerImageInput) {
+    playerImageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                gameState.playerAvatar = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
 }
 
-// ゲーム初期化
-function initializeGame() {
-    // キャラクター定義を読み込む
-    loadCharacterDefinitions();
-    
-    // キャラクター選択オプションを生成
-    generateCharacterOptions();
-    
-    // プレイヤーの作成 (1人のプレイヤーと選択されたAI)
-    gameState.players = [
-        { id: 0, name: gameState.playerName, isHuman: true, hand: [], rank: null }
-    ];
-    
-    // 選択されたキャラクターに基づいてAIプレイヤーを作成
-    gameState.selectedCharacters.forEach((character, index) => {
-        const charData = CHARACTERS[character];
-        gameState.players.push({
-            id: index + 1,
-            name: charData.name,
-            isHuman: false,
-            hand: [],
-            character: character,
-            rank: null
+function loadCharacterDefinitions() {
+    if (typeof CHARACTER_LIST !== 'undefined') {
+        CHARACTER_LIST.forEach(character => {
+            CHARACTERS[character.id] = character;
         });
-    });
+        console.log("Characters loaded:", Object.keys(CHARACTERS).length);
+    }
+}
+
+// ==========================================
+// キャラ選択
+// ==========================================
+let tempSelectedCharacters = []; 
+let isSelectingForSpectator = false;
+
+function openCharacterModal(isSpectator) {
+    isSelectingForSpectator = isSpectator;
+    tempSelectedCharacters = [...gameState.selectedCharacters];
     
-    // 必要に応じてデフォルトのAIを追加
-    while (gameState.players.length < 4) {
-        const index = gameState.players.length;
+    const title = characterModal.querySelector('h2');
+    if (title) title.textContent = isSpectator ? "観戦する4人を選択（最初は手前）" : "対戦相手を3人選択";
+
+    characterModal.style.display = 'block';
+    renderCharacterGrid();
+    updateModalSelectionDisplay();
+    
+    const firstId = Object.keys(CHARACTERS)[0];
+    if (firstId) showCharacterDetails(CHARACTERS[firstId]);
+}
+
+function closeCharacterModalFunc() {
+    characterModal.style.display = 'none';
+}
+
+function renderCharacterGrid() {
+    characterGrid.innerHTML = '';
+    const createSection = (title, ids) => {
+        if (ids.length === 0) return;
+        const header = document.createElement('h3');
+        header.textContent = title;
+        header.style.width = '100%';
+        header.style.marginTop = '20px';
+        header.style.borderBottom = '2px solid #ddd';
+        characterGrid.appendChild(header);
+
+        const gridContainer = document.createElement('div');
+        gridContainer.style.display = 'grid';
+        gridContainer.style.gridTemplateColumns = 'repeat(auto-fill, minmax(130px, 1fr))';
+        gridContainer.style.gap = '15px';
+        gridContainer.style.width = '100%';
+        
+        ids.forEach(id => {
+            const charData = CHARACTERS[id];
+            if (!charData) return;
+            const card = document.createElement('div');
+            card.className = 'character-card';
+            if (tempSelectedCharacters.includes(id)) card.classList.add('selected');
+            
+            const fullPath = charData.portrait || '';
+            const fileNameOnly = fullPath.split('/').pop();
+            const imgTag = `<img src="${fullPath}" alt="${charData.name}" onerror="this.onerror=null; this.src='${fileNameOnly}'; this.style.display='none'; this.nextElementSibling.style.display='flex'">`;
+            const fallbackAvatar = `<div class="fallback-avatar" style="width:80px;height:80px;border-radius:50%;background:#eee;display:none;margin:0 auto 10px;line-height:80px;font-size:30px;color:#aaa;align-items:center;justify-content:center;">${charData.name.charAt(0)}</div>`;
+
+            card.innerHTML = `${imgTag}${fallbackAvatar}<div style="font-weight:bold;">${charData.name}</div><div style="font-size:0.8em;color:#666;">${charData.MBTI}</div>`;
+            card.onclick = () => toggleCharacterSelection(id, card);
+            card.onmouseenter = () => showCharacterDetails(charData);
+            gridContainer.appendChild(card);
+        });
+        characterGrid.appendChild(gridContainer);
+    };
+    createSection('2年1組', CLASS_2_1);
+    createSection('2年2組', CLASS_2_2);
+}
+
+function toggleCharacterSelection(id, cardElement) {
+    const index = tempSelectedCharacters.indexOf(id);
+    const limit = isSelectingForSpectator ? 4 : 3;
+
+    if (index === -1) {
+        if (tempSelectedCharacters.length >= limit) {
+            alert(`選択できるのは最大${limit}人までです。`);
+            return;
+        }
+        tempSelectedCharacters.push(id);
+        cardElement.classList.add('selected');
+    } else {
+        tempSelectedCharacters.splice(index, 1);
+        cardElement.classList.remove('selected');
+    }
+    updateModalSelectionDisplay();
+    showCharacterDetails(CHARACTERS[id]);
+}
+
+function updateModalSelectionDisplay() {
+    selectedCharactersList.innerHTML = '';
+    const required = isSelectingForSpectator ? 4 : 1;
+    
+    if (tempSelectedCharacters.length < required) {
+        selectedCharactersList.innerHTML = `<span style="color:#888;">${isSelectingForSpectator ? '4人選んでください' : '対戦相手を選んでください'}</span>`;
+        confirmSelectionBtn.disabled = true;
+    } else {
+        confirmSelectionBtn.disabled = false;
+    }
+    confirmSelectionBtn.textContent = `この${tempSelectedCharacters.length}人で決定`;
+
+    tempSelectedCharacters.forEach(id => {
+        const char = CHARACTERS[id];
+        const tag = document.createElement('div');
+        tag.className = 'selected-character';
+        tag.innerHTML = `${char.name} <span class="remove-character" onclick="removeTempCharacter('${id}')">×</span>`;
+        selectedCharactersList.appendChild(tag);
+    });
+}
+
+window.removeTempCharacter = function(id) {
+    const index = tempSelectedCharacters.indexOf(id);
+    if (index > -1) {
+        tempSelectedCharacters.splice(index, 1);
+        renderCharacterGrid();
+        updateModalSelectionDisplay();
+    }
+};
+
+function showCharacterDetails(char) {
+    characterName.textContent = char.name;
+    const gender = char.gender ? ` (${char.gender})` : "";
+    characterMbti.textContent = `MBTI: ${char.MBTI}${gender}`;
+    characterEnneagram.textContent = `エニアグラム: ${char.enneagram}`;
+    characterDescription.textContent = char.profile || "詳細情報なし";
+    
+    const fullPath = char.portrait || '';
+    const fileNameOnly = fullPath.split('/').pop();
+    characterPortrait.src = fullPath;
+    characterPortrait.onerror = function() { this.src = fileNameOnly; };
+    characterPortrait.style.display = 'inline-block';
+}
+
+closeCharacterModal.onclick = closeCharacterModalFunc;
+window.onclick = (e) => { 
+    if (e.target === characterModal) closeCharacterModalFunc();
+    if (e.target === rulesModal) rulesModal.style.display = 'none';
+};
+
+confirmSelectionBtn.onclick = () => {
+    gameState.selectedCharacters = [...tempSelectedCharacters];
+    gameState.isSpectator = isSelectingForSpectator;
+    
+    const names = gameState.selectedCharacters.map(id => CHARACTERS[id].name).join('、');
+    const modeName = gameState.isSpectator ? "【観戦モード】" : "【通常モード】";
+    selectionStatus.textContent = `${modeName} 参加者: ${names}`;
+    selectionStatus.style.color = "#333";
+    selectionStatus.style.fontWeight = "bold";
+    
+    closeCharacterModalFunc();
+};
+
+// ==========================================
+// ゲーム開始処理
+// ==========================================
+showRulesButton.onclick = () => rulesModal.style.display = 'block';
+closeModal.onclick = () => rulesModal.style.display = 'none';
+
+startGameButton.addEventListener('click', () => {
+    const required = gameState.isSpectator ? 4 : 1;
+    if (gameState.selectedCharacters.length < required) {
+        showNotification(gameState.isSpectator ? '観戦モードは4人選んでください' : '対戦相手を選んでください');
+        return;
+    }
+    startGame();
+});
+
+function startGame() {
+    gameState.players = [];
+    gameState.field = [];
+    gameState.revolution = false;
+    gameState.finishedPlayers = [];
+    gameState.lastPlayIndex = -1; 
+    gameState.round = 1;
+    gameState.prevRanks = {};
+    gameState.isProcessing = false;
+    
+    setupPlayers();
+    startRound();
+}
+
+function setupPlayers() {
+    if (gameState.isSpectator) {
+        gameState.selectedCharacters.forEach((charId, index) => {
+            const charData = CHARACTERS[charId];
+            gameState.players.push({
+                id: charId,
+                name: charData.name,
+                isHuman: false,
+                hand: [],
+                character: charId,
+                rank: null,
+                isSpectatorSeat: (index === 0)
+            });
+        });
+        gameState.playerName = "観戦中";
+    } else {
+        gameState.playerName = playerNameInput.value || "あなた";
         gameState.players.push({
-            id: index,
-            name: `AI ${index}`,
-            isHuman: false,
+            id: 'player',
+            name: gameState.playerName,
+            isHuman: true,
             hand: [],
-            rank: null
+            rank: null,
+            portrait: gameState.playerAvatar,
+            character: 'player'
+        });
+
+        gameState.selectedCharacters.forEach((charId) => {
+            const charData = CHARACTERS[charId];
+            gameState.players.push({
+                id: charId,
+                name: charData.name,
+                isHuman: false,
+                hand: [],
+                character: charId,
+                rank: null
+            });
         });
     }
-    
-    // デッキの作成とシャッフル
-    createDeck();
-    shuffleDeck();
-    
-    // カードの配布
-    dealCards();
-    
-    // 上がりプレイヤーをクリア
+}
+
+function startRound() {
+    gameState.field = [];
+    gameState.revolution = false;
     gameState.finishedPlayers = [];
+    gameState.lastPlayIndex = -1;
+    gameState.isProcessing = false;
     
-    // セリフ表示要素を作成
+    gameState.players.forEach(p => {
+        p.hand = [];
+        p.rank = null; 
+    });
+
+    setupScreen.style.display = 'none';
+    resultModal.style.display = 'none';
+    gameScreen.style.display = 'block';
     createDialogueElement();
     
-    // ゲーム画面の更新
+    initDeck();
     updateGameDisplay();
-}
-
-// キャラクター定義を読み込む関数
-function loadCharacterDefinitions() {
-    // JSONファイルからキャラクター定義を読み込む
-    fetch('public/characters/character_defs.json')
-        .then(response => response.json())
-        .then(data => {
-            // データをCHARACTERSオブジェクトに格納
-            data.forEach(character => {
-                CHARACTERS[character.id] = character;
-            });
-        })
-        .catch(error => console.error('キャラクター定義の読み込みエラー:', error));
-}
-
-// キャラクター選択オプションを生成する関数
-function generateCharacterOptions() {
-    characterSelectionElement.innerHTML = '';
     
-    // 利用可能なキャラクターを表示
-    Object.keys(CHARACTERS).forEach(characterId => {
-        const character = CHARACTERS[characterId];
-        const characterOption = document.createElement('div');
-        characterOption.className = 'character-option';
-        characterOption.dataset.character = characterId;
-        
-        characterOption.innerHTML = `
-            <img src="${character.portrait}" alt="${character.name}" width="50">
-            <p>${character.name} (${character.MBTI})</p>
-        `;
-        
-        characterOption.addEventListener('click', () => {
-            characterOption.classList.toggle('selected');
-            const character = characterOption.dataset.character;
-            
-            // 選択されたキャラクターを追加または削除
-            if (gameState.selectedCharacters.includes(character)) {
-                gameState.selectedCharacters = gameState.selectedCharacters.filter(c => c !== character);
-            } else {
-                gameState.selectedCharacters.push(character);
-            }
-        });
-        
-        characterSelectionElement.appendChild(characterOption);
-    });
-}
-
-// セリフ表示要素を作成
-function createDialogueElement() {
-    // 既存のセリフ要素があれば削除
-    if (gameState.dialogueElement) {
-        gameState.dialogueElement.remove();
-    }
-    
-    // 新しいセリフ要素を作成
-    gameState.dialogueElement = document.createElement('div');
-    gameState.dialogueElement.id = 'dialogue';
-    gameState.dialogueElement.style.cssText = `
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: rgba(255, 255, 255, 0.9);
-        border: 2px solid #333;
-        border-radius: 10px;
-        padding: 10px 20px;
-        font-size: 18px;
-        font-weight: bold;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        z-index: 1000;
-        display: none;
-    `;
-    
-    document.body.appendChild(gameState.dialogueElement);
-}
-
-// セリフを表示
-function showDialogue(text, duration = 3000) {
-    if (!gameState.dialogueElement) return;
-    
-    gameState.dialogueElement.textContent = text;
-    gameState.dialogueElement.style.display = 'block';
-    
-    // 指定時間後に非表示
-    setTimeout(() => {
-        if (gameState.dialogueElement) {
-            gameState.dialogueElement.style.display = 'none';
-        }
-    }, duration);
-}
-
-// ランダムなセリフを取得
-function getRandomDialogue(character, situation) {
-    // pairLinesのチェック
-    if (situation === 'play' || situation === 'pressure' || situation === 'antiPressure' || situation === 'win' || situation === 'pass') {
-        // 場の他のプレイヤーをチェック
-        for (let i = 1; i < gameState.players.length; i++) {
-            const player = gameState.players[i];
-            if (player.character && player.character !== character.id && character.pairLinesDetailed) {
-                const pairLines = character.pairLinesDetailed[player.character];
-                if (pairLines && pairLines[situation]) {
-                    const lines = pairLines[situation];
-                    return lines[Math.floor(Math.random() * lines.length)];
-                }
-            }
+    if (gameState.round > 1) {
+        setTimeout(performCardExchange, 1500);
+    } else {
+        showNotification(`第${gameState.round}回戦 スタート！`);
+        if (!checkTriangleEvents()) {
+            playStartVoices();
         }
     }
-    
-    // 通常のvoiceLinesDetailedからセリフを取得
-    if (character.voiceLinesDetailed && character.voiceLinesDetailed[situation]) {
-        const lines = character.voiceLinesDetailed[situation];
-        return lines[Math.floor(Math.random() * lines.length)];
-    }
-    
-    // デフォルトのセリフ
-    const defaultLines = {
-        play: "これでどうかな？",
-        win: "勝った！",
-        pass: "パスするね。",
-        revolution: "革命だ！"
-    };
-    
-    return defaultLines[situation] || "...";
 }
 
-// デッキの作成
-function createDeck() {
+function initDeck() {
     gameState.deck = [];
-    
-    // 通常のカードを追加
-    for (const suit of SUITS) {
-        for (const rank of RANKS) {
-            gameState.deck.push(`${rank}_of_${suit}`);
-        }
-    }
-    
-    // ジョーカーを追加
-    gameState.deck.push(JOKER);
-    gameState.deck.push(JOKER);
-    gameState.deck.push(RED_JOKER);
-}
+    SUITS.forEach(suit => {
+        RANKS.forEach(rank => gameState.deck.push(`${rank}_of_${suit}`));
+    });
+    gameState.deck.push(JOKER, RED_JOKER);
 
-// デッキのシャッフル
-function shuffleDeck() {
     for (let i = gameState.deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [gameState.deck[i], gameState.deck[j]] = [gameState.deck[j], gameState.deck[i]];
     }
-}
 
-// カードの配布
-function dealCards() {
-    // 各プレイヤーに13枚のカードを配る
-    for (let i = 0; i < 13; i++) {
-        for (const player of gameState.players) {
-            if (gameState.deck.length > 0) {
-                player.hand.push(gameState.deck.pop());
-            }
-        }
+    let playerIdx = 0;
+    while(gameState.deck.length > 0) {
+        gameState.players[playerIdx].hand.push(gameState.deck.pop());
+        playerIdx = (playerIdx + 1) % gameState.players.length;
     }
+
+    gameState.players.forEach(p => sortHand(p.hand));
     
-    // プレイヤーの手札をソート
-    sortPlayerHand();
-}
-
-// プレイヤーの手札をソート
-function sortPlayerHand() {
-    const player = gameState.players[0];
-    player.hand.sort((a, b) => {
-        // ジョーカーは最後に
-        if (a === JOKER) return 1;
-        if (b === JOKER) return -1;
-        if (a === RED_JOKER) return 1;
-        if (b === RED_JOKER) return -1;
-        
-        // スートで比較
-        const suitA = a.split('_of_')[1];
-        const suitB = b.split('_of_')[1];
-        const suitIndexA = SUITS.indexOf(suitA);
-        const suitIndexB = SUITS.indexOf(suitB);
-        
-        if (suitIndexA !== suitIndexB) {
-            return suitIndexA - suitIndexB;
-        }
-        
-        // ランクで比較
-        const rankA = a.split('_of_')[0];
-        const rankB = b.split('_of_')[0];
-        const rankIndexA = RANKS.indexOf(rankA);
-        const rankIndexB = RANKS.indexOf(rankB);
-        
-        return rankIndexA - rankIndexB;
-    });
-}
-
-// ゲーム画面の更新
-function updateGameDisplay() {
-    updateField();
-    updatePlayers();
-    updatePlayerHand();
-}
-
-// 場の更新
-function updateField() {
-    fieldElement.innerHTML = '';
-    if (gameState.field.length === 0) {
-        fieldElement.textContent = '場にはカードがありません';
+    if (gameState.round > 1) {
+        const daihinmin = gameState.players.find(p => gameState.prevRanks[p.id] === 3); 
+        gameState.currentPlayerIndex = daihinmin ? gameState.players.indexOf(daihinmin) : 0;
     } else {
-        // 場のカードを表示
-        for (const card of gameState.field) {
-            const cardElement = document.createElement('div');
-            cardElement.className = 'card';
-            cardElement.style.backgroundImage = `url(cards/${card}.png)`;
-            fieldElement.appendChild(cardElement);
-        }
+        gameState.currentPlayerIndex = 0;
     }
 }
 
-// プレイヤー情報の更新
-function updatePlayers() {
-    playersElement.innerHTML = '';
-    for (let i = 1; i < gameState.players.length; i++) {
-        const player = gameState.players[i];
-        const playerElement = document.createElement('div');
-        playerElement.className = 'player';
-        playerElement.innerHTML = `
-            <h3>${player.name}</h3>
-            <p>手札: ${player.hand.length}枚</p>
-        `;
-        playersElement.appendChild(playerElement);
-    }
-}
-
-// プレイヤーの手札の更新
-function updatePlayerHand() {
-    playerHandElement.innerHTML = '';
-    const player = gameState.players[0];
+// トリプルイベント（確率40%）
+function checkTriangleEvents() {
+    if (gameState.round > 1) return false; 
+    const participantIds = gameState.players.map(p => p.character);
     
-    for (let i = 0; i < player.hand.length; i++) {
-        const card = player.hand[i];
-        const cardElement = document.createElement('div');
-        cardElement.className = 'card';
-        cardElement.style.backgroundImage = `url(cards/${card}.png)`;
-        cardElement.dataset.index = i;
+    for (const event of TRIANGLE_EVENTS) {
+        const isMatch = event.characters.every(charId => participantIds.includes(charId));
         
-        // カードクリックイベント
-        cardElement.addEventListener('click', () => {
-            toggleCardSelection(i);
-        });
-        
-        playerHandElement.appendChild(cardElement);
-    }
-}
-
-// カード選択のトグル
-function toggleCardSelection(index) {
-    const selectedIndex = gameState.selectedCards.indexOf(index);
-    const cardElement = document.querySelector(`.card[data-index="${index}"]`);
-    
-    if (selectedIndex === -1) {
-        // カードを選択
-        gameState.selectedCards.push(index);
-        cardElement.classList.add('selected');
-    } else {
-        // カードの選択を解除
-        gameState.selectedCards.splice(selectedIndex, 1);
-        cardElement.classList.remove('selected');
-    }
-}
-
-// カードが有効かチェック
-function isValidPlay(cardNames) {
-    // ここでは簡単のために、同じランクのカードのみを許可
-    if (cardNames.length === 0) return false;
-    
-    // ジョーカーを除いたカードのランクを取得
-    const ranks = cardNames
-        .filter(name => name !== JOKER && name !== RED_JOKER)
-        .map(name => name.split('_of_')[0]);
-    
-    // すべてのカードが同じランクかチェック
-    const isSameRank = ranks.every(rank => rank === ranks[0]);
-    
-    // 革命時の強さを考慮
-    if (gameState.revolution) {
-        // 革命時は強さが逆転する
-        return isSameRank;
-    }
-    
-    return isSameRank;
-}
-
-// 8切りのチェック
-function checkEightCut() {
-    // 場に出たカードに8が含まれているかチェック
-    return gameState.field.some(card => {
-        const rank = card.split('_of_')[0];
-        return rank === '8';
-    });
-}
-
-// 革命のチェックと適用
-function checkRevolution() {
-    // 場に出たカードが4枚で同じランクなら革命
-    if (gameState.field.length === 4) {
-        const ranks = gameState.field
-            .filter(name => name !== JOKER && name !== RED_JOKER)
-            .map(name => name.split('_of_')[0]);
-        
-        if (ranks.length === 4 && ranks.every(rank => rank === ranks[0])) {
-            gameState.revolution = !gameState.revolution;
+        if (isMatch && Math.random() < 0.4) {
+            gameState.isProcessing = true; // ゲーム停止
+            let delay = 500;
+            const lines = event.lines.start;
+            const charIds = Object.keys(lines);
             
-            // 革命セリフを表示
-            showDialogue(gameState.revolution ? '革命発生！' : '革命終了！');
-            
+            charIds.forEach((charId, index) => {
+                const charData = CHARACTERS[charId];
+                const text = lines[charId][Math.floor(Math.random() * lines[charId].length)];
+                
+                setTimeout(() => {
+                    showDialogue(charData.name, text, charId, 'start');
+                    if (index === charIds.length - 1) {
+                        setTimeout(() => {
+                            gameState.isProcessing = false; // 再開
+                            updateGameDisplay(); 
+                        }, 4000);
+                    }
+                }, delay);
+                delay += 4500; // 時間をたっぷりとる
+            });
             return true;
         }
     }
     return false;
 }
 
-// 選択されたカードを出す
-function playSelectedCards() {
-    if (gameState.selectedCards.length === 0) {
-        alert('カードを選択してください');
+function performCardExchange() {
+    gameState.isProcessing = true;
+    const playersByRank = {};
+    gameState.players.forEach(p => {
+        const r = gameState.prevRanks[p.id];
+        if (r !== undefined) playersByRank[r] = p;
+    });
+
+    let delay = 0;
+
+    const processExchange = (winnerRank, loserRank, winCount, loseCount) => {
+        const winner = playersByRank[winnerRank];
+        const loser = playersByRank[loserRank];
+        if (!winner || !loser) return;
+
+        if (!winner.isHuman) {
+            setTimeout(() => {
+                const char = CHARACTERS[winner.character];
+                showDialogue(winner.name, getRandomDialogue(char, 'tributeReceive', winner), winner.character, 'win');
+            }, delay);
+            delay += 4000;
+        }
+
+        if (!loser.isHuman) {
+            setTimeout(() => {
+                const char = CHARACTERS[loser.character];
+                showDialogue(loser.name, getRandomDialogue(char, 'tributeGive', loser), loser.character, 'lose');
+            }, delay);
+            delay += 4000;
+        }
+
+        const giveToLoser = winner.hand.slice(0, winCount);
+        const giveToWinner = loser.hand.slice(loser.hand.length - loseCount);
+        exchangeCards(winner, loser, giveToLoser, giveToWinner);
+    };
+
+    processExchange(0, 3, 2, 2);
+    processExchange(1, 2, 1, 1);
+    
+    setTimeout(() => {
+        gameState.players.forEach(p => sortHand(p.hand));
+        showNotification("都落ち/カード交換が行われました");
+        
+        setTimeout(() => {
+             gameState.isProcessing = false;
+             playStartVoices(); 
+             showNotification(`第${gameState.round}回戦 スタート！`);
+        }, 2000);
+        
+    }, delay + 500);
+}
+
+function exchangeCards(p1, p2, cardsFromP1, cardsFromP2) {
+    cardsFromP1.forEach(c => {
+        const idx = p1.hand.indexOf(c);
+        if (idx > -1) p1.hand.splice(idx, 1);
+    });
+    cardsFromP2.forEach(c => {
+        const idx = p2.hand.indexOf(c);
+        if (idx > -1) p2.hand.splice(idx, 1);
+    });
+    p1.hand.push(...cardsFromP2);
+    p2.hand.push(...cardsFromP1);
+}
+
+function getCardStrength(cardName) {
+    if (cardName === JOKER || cardName === RED_JOKER) return 99;
+    const rank = cardName.split('_of_')[0];
+    let strength = RANKS.indexOf(rank);
+    if (gameState.revolution) return 12 - strength;
+    return strength;
+}
+
+function getRankValue(cardName) {
+    if (cardName === JOKER || cardName === RED_JOKER) return 100;
+    const rank = cardName.split('_of_')[0];
+    const order = ['3','4','5','6','7','8','9','10','jack','queen','king','ace','2'];
+    return order.indexOf(rank);
+}
+
+function getSuit(cardName) {
+    if (cardName === JOKER || cardName === RED_JOKER) return 'joker';
+    return cardName.split('_of_')[1];
+}
+
+function sortHand(hand) {
+    hand.sort((a, b) => getCardStrength(a) - getCardStrength(b));
+}
+
+function playStartVoices() {
+    gameState.isProcessing = true; // ロック
+    let delay = 500;
+    let maxDelay = 0;
+    
+    gameState.players.forEach(p => {
+        if (!p.isHuman) {
+            setTimeout(() => {
+                const char = CHARACTERS[p.character];
+                showDialogue(p.name, getRandomDialogue(char, 'start', p), p.character, 'start');
+            }, delay);
+            delay += 4000;
+            maxDelay = delay;
+        }
+    });
+    
+    // 全員喋り終わったら解除
+    setTimeout(() => {
+        gameState.isProcessing = false;
+        updateGameDisplay();
+    }, maxDelay);
+}
+
+// ==========================================
+// ゲームロジック
+// ==========================================
+playButton.onclick = playSelectedCards;
+passButton.onclick = playerPass;
+
+function updateGameDisplay() {
+    updateField();
+    updatePlayers();
+    updatePlayerHand();
+    
+    if (gameState.isProcessing) return; // ロック中は動かない
+
+    const currentPlayer = gameState.players[gameState.currentPlayerIndex];
+    const isHumanTurn = currentPlayer.isHuman; // 観戦モードの0番はisHuman=falseなのでAI扱い
+    
+    if (isHumanTurn) {
+        document.getElementById('controls').style.display = 'block';
+        playButton.disabled = false;
+        passButton.disabled = false;
+        checkFieldClear();
+    } else {
+        document.getElementById('controls').style.display = 'none';
+        
+        // 場が流れるかチェック -> その後AI思考
+        if (checkFieldClear()) {
+            setTimeout(aiTurn, 1000);
+        } else {
+            setTimeout(aiTurn, 1000);
+        }
+    }
+}
+
+function checkFieldClear() {
+    if (gameState.lastPlayIndex === gameState.currentPlayerIndex) {
+        gameState.field = [];
+        gameState.lastPlayIndex = -1; 
+        
+        const currentPlayer = gameState.players[gameState.currentPlayerIndex];
+        const msg = (currentPlayer.isHuman || currentPlayer.isSpectatorSeat) ? "（あなた）が親番です" : `${currentPlayer.name}が親番です`;
+        showNotification(msg);
+        
+        updateField();
+        return true;
+    }
+    
+    if (gameState.lastPlayIndex !== -1 && gameState.finishedPlayers.includes(gameState.lastPlayIndex)) {
+        if (gameState.field.length > 0) {
+             gameState.field = [];
+             gameState.lastPlayIndex = -1;
+             
+             const currentPlayer = gameState.players[gameState.currentPlayerIndex];
+             const msg = (currentPlayer.isHuman || currentPlayer.isSpectatorSeat) ? "前の親が上がりのため、親番です" : `前の親が上がりのため、${currentPlayer.name}が親番です`;
+             showNotification(msg);
+             
+             updateField();
+             return true;
+        }
+    }
+    return false;
+}
+
+function updateField() {
+    fieldElement.innerHTML = '';
+    if (gameState.field.length === 0) {
+        fieldElement.innerHTML = '<div style="color:#888; text-align:center; width:100%;">場にカードはありません</div>';
         return;
     }
-    
-    // 選択されたカードを取得
-    const selectedCardNames = gameState.selectedCards
-        .map(index => gameState.players[0].hand[index])
-        .sort();
-    
-    // 選択されたカードが有効かチェック（簡易的なチェック）
-    if (isValidPlay(selectedCardNames)) {
-        // 場に出す
-        gameState.field = selectedCardNames;
+    const cardWidth = 110; 
+    const overlap = 30;    
+    const totalWidth = (gameState.field.length - 1) * overlap + cardWidth;
+    const startX = (fieldElement.clientWidth - totalWidth) / 2;
+
+    gameState.field.forEach((card, index) => {
+        const el = document.createElement('div');
+        el.className = 'card';
+        el.style.backgroundImage = `url(cards/${card}.png)`;
+        el.style.position = 'absolute'; 
+        el.style.left = `${startX + index * overlap}px`; 
+        el.style.zIndex = index;
+        fieldElement.appendChild(el);
+    });
+}
+
+function updatePlayers() {
+    playersElement.innerHTML = '';
+    gameState.players.forEach((p, idx) => {
+        if (p.isHuman || (gameState.isSpectator && idx === 0)) return;
         
-        // 8切りのチェック
-        if (checkEightCut()) {
-            alert('8切り！');
-            // 8切りの場合、場のカードをクリア
-            setTimeout(() => {
-                gameState.field = [];
-                updateGameDisplay();
-            }, 1000);
+        const div = document.createElement('div');
+        div.className = 'player';
+        
+        if (!gameState.finishedPlayers.includes(idx) && idx === gameState.currentPlayerIndex) {
+            div.style.border = "3px solid #ff6b6b";
+            div.style.backgroundColor = "#fff0f0";
         }
+
+        const char = CHARACTERS[p.character];
+        const fullPath = char && char.portrait ? char.portrait : '';
+        const fileNameOnly = fullPath.split('/').pop();
         
-        // 革命のチェック
-        checkRevolution();
-        
-        // 手札から削除
-        gameState.selectedCards.sort((a, b) => b - a); // 降順にソートして後ろから削除
-        for (const index of gameState.selectedCards) {
-            gameState.players[0].hand.splice(index, 1);
-        }
-        
-        // 上がりチェック
-        if (gameState.players[0].hand.length === 0) {
-            gameState.finishedPlayers.push(0);
-            gameState.players[0].rank = RANKINGS[gameState.finishedPlayers.length - 1];
-            alert(`${gameState.playerName} さんが上がりました！ 階級: ${gameState.players[0].rank}`);
+        const img = fullPath 
+            ? `<img src="${fullPath}" onerror="this.src='${fileNameOnly}'; this.onerror=null;" style="width:40px;height:40px;border-radius:50%;vertical-align:middle;margin-right:10px;">` 
+            : `<div style="width:40px;height:40px;border-radius:50%;background:#eee;display:inline-flex;align-items:center;justify-content:center;margin-right:10px;">${p.name.charAt(0)}</div>`;
             
-            // ゲーム終了チェック
-            if (gameState.finishedPlayers.length >= 3) {
-                finishGame();
-                return;
+        const rankText = p.rank ? `<span style="color:#d32f2f;font-weight:bold;">[${p.rank}]</span>` : '';
+        const status = gameState.finishedPlayers.includes(idx) ? '上がり' : `手札: ${p.hand.length}枚`;
+        
+        div.innerHTML = `${img}<strong>${p.name}</strong> ${rankText}<br>${status}`;
+        playersElement.appendChild(div);
+    });
+}
+
+function updatePlayerHand() {
+    playerHandElement.innerHTML = '';
+    const myHand = gameState.players[0].hand;
+    
+    myHand.forEach((card, i) => {
+        const el = document.createElement('div');
+        el.className = 'card';
+        if (gameState.selectedCards.includes(i)) el.classList.add('selected');
+        el.style.backgroundImage = `url(cards/${card}.png)`;
+        
+        if (!gameState.isSpectator) {
+            el.onclick = () => {
+                if (gameState.selectedCards.includes(i)) {
+                    gameState.selectedCards = gameState.selectedCards.filter(idx => idx !== i);
+                } else {
+                    gameState.selectedCards.push(i);
+                }
+                updatePlayerHand();
+            };
+        }
+        playerHandElement.appendChild(el);
+    });
+}
+
+function isValidPlay(cards) {
+    if (cards.length === 0) return false;
+
+    const isJoker = (c) => c === JOKER || c === RED_JOKER;
+    const normalCards = cards.filter(c => !isJoker(c));
+    let isStairs = false;
+    
+    if (normalCards.length >= 3 && cards.length === normalCards.length) {
+        const firstSuit = getSuit(normalCards[0]);
+        if (normalCards.every(c => getSuit(c) === firstSuit)) {
+            const sorted = [...normalCards].sort((a,b) => getRankValue(a) - getRankValue(b));
+            let consecutive = true;
+            for(let i=0; i<sorted.length-1; i++) {
+                if (getRankValue(sorted[i+1]) !== getRankValue(sorted[i]) + 1) {
+                    consecutive = false;
+                    break;
+                }
+            }
+            if (consecutive) isStairs = true;
+        }
+    }
+
+    if (gameState.field.length === 0) {
+        if (isStairs) return true;
+        if (normalCards.length > 0) {
+            const baseRank = normalCards[0].split('_of_')[0];
+            if (!normalCards.every(c => c.split('_of_')[0] === baseRank)) {
+                return false;
             }
         }
+        return true;
+    }
+
+    if (cards.length !== gameState.field.length) return false;
+
+    const fieldStrength = getCardStrength(gameState.field[0]);
+    const myStrength = normalCards.length > 0 ? getCardStrength(normalCards[0]) : 99;
+
+    return myStrength > fieldStrength;
+}
+
+function checkEightCut(cards) {
+    return cards.some(c => c.startsWith('8_'));
+}
+
+function checkRevolution(cards) {
+    return cards.length >= 4;
+}
+
+function playSelectedCards() {
+    const player = gameState.players[0];
+    const cards = gameState.selectedCards.map(i => player.hand[i]);
+
+    if (!isValidPlay(cards)) {
+        showNotification("そのカードは出せません！");
+        return;
+    }
+    executePlay(player, cards, gameState.selectedCards);
+    gameState.selectedCards = [];
+}
+
+function playerPass() {
+    if (gameState.field.length === 0) {
+        showNotification("親番です。カードを出してください。");
+        return;
+    }
+    showDialogue(gameState.players[0].name, "パスします。", "player", "pass");
+    advanceTurn();
+}
+
+function executePlay(player, cards, removeTarget) {
+    gameState.field = cards;
+    gameState.lastPlayIndex = gameState.players.indexOf(player);
+    
+    // ★修正：手札削除処理をAIと人間で共通化（オブジェクト一致削除）
+    // AIの場合、removeTargetはカード実体配列。人間の場合、index配列だが
+    // ここで統一して「カード実体」を探して消す方式にする（安全のため）
+    let targetCards = [];
+    if (player.isHuman && !gameState.isSpectator) {
+        targetCards = removeTarget.map(i => player.hand[i]);
+    } else {
+        targetCards = removeTarget; // AIはカード配列そのものを渡してくる
+    }
+
+    // 手札から削除（一致するものを1つずつ）
+    targetCards.forEach(card => {
+        const idx = player.hand.indexOf(card);
+        if (idx !== -1) player.hand.splice(idx, 1);
+    });
+
+    // 画面更新（観戦モードなら手札の再描画が必要）
+    if (gameState.isSpectator && player.id === gameState.players[0].id) {
+        updatePlayerHand();
+    }
+
+    // プレッシャー判定（順番に）
+    const strength = getCardStrength(cards[0]);
+    if (strength >= 10 || cards.some(c=>c===JOKER||c===RED_JOKER)) {
+        // AIの思考を止める
+        gameState.isProcessing = true;
+        let delay = 500;
+        let count = 0;
+        gameState.players.forEach(p => {
+            if (!p.isHuman && p !== player && !gameState.finishedPlayers.includes(gameState.players.indexOf(p))) {
+                 if (Math.random() < 0.3 && count < 2) { // 最大2人まで
+                     setTimeout(() => {
+                         const char = CHARACTERS[p.character];
+                         showDialogue(p.name, getRandomDialogue(char, 'antiPressure', p), p.character, 'lose');
+                     }, delay);
+                     delay += 4000;
+                     count++;
+                 }
+            }
+        });
+        // リアクション終わるまで待機
+        setTimeout(() => {
+            gameState.isProcessing = false;
+             // 8切りや上がりのチェックへ進む
+             continueExecute(player, cards);
+        }, delay);
+    } else {
+        continueExecute(player, cards);
+    }
+}
+
+// executePlayの後半部分
+function continueExecute(player, cards) {
+    if (checkRevolution(cards)) {
+        gameState.revolution = !gameState.revolution;
+        showDialogue("システム", gameState.revolution ? "革命発生！！" : "革命返し！！", null, null);
+        gameState.players.forEach(p => sortHand(p.hand));
+    }
+
+    if (checkEightCut(cards)) {
+        const char = CHARACTERS[player.character];
+        if (char) showDialogue(player.name, "8切り！", player.character, 'play');
+        else showDialogue(player.name, "8切り！", "player", "play");
         
-        // 選択をクリア
-        gameState.selectedCards = [];
-        
-        // 表示を更新
+        gameState.field = [];
+        gameState.lastPlayIndex = -1; 
         updateGameDisplay();
         
-        // AIのターンへ
-        setTimeout(aiTurn, 1000);
-    } else {
-        alert('そのカードは出せません');
-    }
-}
+        if (checkWin(player)) return;
 
-// パス
-function passTurn() {
-    // 選択をクリア
-    gameState.selectedCards = [];
-    document.querySelectorAll('.card.selected').forEach(el => el.classList.remove('selected'));
-    
-    // AIのターンへ
-    setTimeout(aiTurn, 500);
-}
-
-// AIのターン
-function aiTurn() {
-    // 各AIプレイヤーのターンを処理
-    for (let i = 1; i < gameState.players.length; i++) {
-        const player = gameState.players[i];
-        if (player.hand.length === 0) continue;
-        
-        // AIの戦略に基づいてカードを選択
-        const cardToPlay = selectCardForAI(player);
-        
-        if (cardToPlay) {
-            gameState.field = [cardToPlay];
-            // 手札から削除
-            const index = player.hand.indexOf(cardToPlay);
-            if (index > -1) {
-                player.hand.splice(index, 1);
-            }
-            
-            // セリフを表示
-            const character = player.character ? CHARACTERS[player.character] : null;
-            if (character) {
-                // プレイヤーがカードを出すときのセリフを取得
-                let dialogue = getRandomDialogue(character, 'play');
-                // pairLinesのチェック
-                if (gameState.players[0].character && character.pairLinesDetailed && character.pairLinesDetailed[gameState.players[0].character]) {
-                    const pairLines = character.pairLinesDetailed[gameState.players[0].character];
-                    if (pairLines['play']) {
-                        const lines = pairLines['play'];
-                        dialogue = lines[Math.floor(Math.random() * lines.length)];
-                    }
-                }
-                showDialogue(`${player.name}: ${dialogue}`);
-            }
-            
-            // 上がりチェック
-            if (player.hand.length === 0) {
-                gameState.finishedPlayers.push(i);
-                player.rank = RANKINGS[gameState.finishedPlayers.length - 1];
-                
-                // 上がりセリフを表示
-                if (character) {
-                    // プレイヤーが上がったときのセリフを取得
-                    let dialogue = getRandomDialogue(character, 'win');
-                    // pairLinesのチェック
-                    if (gameState.players[0].character && character.pairLinesDetailed && character.pairLinesDetailed[gameState.players[0].character]) {
-                        const pairLines = character.pairLinesDetailed[gameState.players[0].character];
-                        if (pairLines['win']) {
-                            const lines = pairLines['win'];
-                            dialogue = lines[Math.floor(Math.random() * lines.length)];
-                        }
-                    }
-                    showDialogue(`${player.name}: ${dialogue}`);
-                }
-                
-                alert(`${player.name} さんが上がりました！ 階級: ${player.rank}`);
-                
-                // ゲーム終了チェック
-                if (gameState.finishedPlayers.length >= 3) {
-                    finishGame();
-                    return;
-                }
-            }
-            
-            // 表示を更新
+        // 親番通知
+        if (player.isHuman || (gameState.isSpectator && player.id === gameState.players[0].id)) {
+            showNotification("8切り！あなたの親番です");
             updateGameDisplay();
-            
-            // 1人のAIが行動したら終了
-            break;
         } else {
-            // パスセリフを表示
-            const character = player.character ? CHARACTERS[player.character] : null;
-            if (character) {
-                // プレイヤーがパスするときのセリフを取得
-                let dialogue = getRandomDialogue(character, 'pass');
-                // pairLinesのチェック
-                if (gameState.players[0].character && character.pairLinesDetailed && character.pairLinesDetailed[gameState.players[0].character]) {
-                    const pairLines = character.pairLinesDetailed[gameState.players[0].character];
-                    if (pairLines['pass']) {
-                        const lines = pairLines['pass'];
-                        dialogue = lines[Math.floor(Math.random() * lines.length)];
-                    }
-                }
-                showDialogue(`${player.name}: ${dialogue}`);
+            showNotification(`8切り！${player.name}の親番です`);
+            // AIなら少し待って再行動
+            setTimeout(aiTurn, 1000);
+        }
+        return; 
+    }
+
+    if (checkWin(player)) return;
+
+    advanceTurn();
+}
+
+function checkWin(player) {
+    if (player.hand.length === 0) {
+        if (player.rank !== null) return true;
+
+        const rankIndex = gameState.finishedPlayers.length;
+        player.rank = RANKINGS[rankIndex];
+        gameState.finishedPlayers.push(gameState.players.indexOf(player));
+        
+        // 都落ち
+        if (gameState.round > 1 && rankIndex === 0) {
+            const prevKing = gameState.players.find(p => gameState.prevRanks[p.id] === 0);
+            if (prevKing && prevKing !== player && !gameState.finishedPlayers.includes(gameState.players.indexOf(prevKing))) {
+                showNotification("都落ち発生！！");
+                prevKing.rank = RANKINGS[3];
+                gameState.finishedPlayers.push(gameState.players.indexOf(prevKing)); 
+                prevKing.hand = []; 
+                
+                const kChar = CHARACTERS[prevKing.character];
+                setTimeout(() => {
+                    showDialogue(prevKing.name, getRandomDialogue(kChar, 'drop', prevKing), prevKing.character, 'lose');
+                }, 1000);
             }
         }
-    }
-    
-    // プレイヤーのターンに戻る
-}
 
-// AIのカード選択ロジック
-function selectCardForAI(player) {
-    // キャラクターのパラメータを取得
-    const character = player.character ? CHARACTERS[player.character] : null;
-    
-    // 場のカードのランクを取得
-    let fieldRank = null;
-    if (gameState.field.length > 0) {
-        const fieldCard = gameState.field[0];
-        fieldRank = fieldCard.split('_of_')[0];
-    }
-    
-    // 有効なカードをフィルタリング
-    const validCards = player.hand.filter(card => {
-        // ジョーカーは常に有効
-        if (card === JOKER || card === RED_JOKER) return true;
+        const char = CHARACTERS[player.character];
+        let situation = rankIndex === 0 ? 'rank1' : 'rank2';
         
-        const cardRank = card.split('_of_')[0];
+        if (char && char.id === 'rei' && Math.random() < 0.2) situation = 'ketchup';
+        else if (rankIndex > 1) situation = 'win';
         
-        // 場にカードがない場合はすべて有効
-        if (!fieldRank) return true;
-        
-        // 革命時の強さを考慮
-        const fieldRankIndex = RANKS.indexOf(fieldRank);
-        const cardRankIndex = RANKS.indexOf(cardRank);
-        
-        if (gameState.revolution) {
-            // 革命時は強さが逆転
-            return cardRankIndex <= fieldRankIndex;
+        if (char) {
+            showDialogue(player.name, getRandomDialogue(char, situation, player), player.character, situation);
         } else {
-            // 通常時は強いカードのみ有効
-            return cardRankIndex >= fieldRankIndex;
+            showDialogue(player.name, "上がりました！", "player", 'win');
         }
-    });
-    
-    if (validCards.length === 0) {
-        // 有効なカードがない場合はパス
-        return null;
-    }
-    
-    // ジョーカーが含まれている場合、それを優先的に選択
-    const jokers = validCards.filter(card => card === JOKER || card === RED_JOKER);
-    if (jokers.length > 0 && Math.random() < 0.7) { // 70%の確率でジョーカーを使用
-        return jokers[Math.floor(Math.random() * jokers.length)];
-    }
-    
-    // キャラクターのパラメータに基づいてカードを選択
-    if (character) {
-        // 攻撃性が高い場合は強いカードを優先
-        if (character.aggressiveness > 0.5) {
-            validCards.sort((a, b) => {
-                // ジョーカーは最強
-                if (a === JOKER || a === RED_JOKER) return -1;
-                if (b === JOKER || b === RED_JOKER) return 1;
-                
-                const rankA = RANKS.indexOf(a.split('_of_')[0]);
-                const rankB = RANKS.indexOf(b.split('_of_')[0]);
-                
-                if (gameState.revolution) {
-                    return rankA - rankB; // 革命時は弱いカードを優先
-                } else {
-                    return rankB - rankA; // 通常時は強いカードを優先
-                }
-            });
-            return validCards[0];
-        }
-        
-        // 協調性が高い場合は弱いカードを優先
-        if (character.cooperativeness > 0.5) {
-            validCards.sort((a, b) => {
-                // ジョーカーは最強
-                if (a === JOKER || a === RED_JOKER) return -1;
-                if (b === JOKER || b === RED_JOKER) return 1;
-                
-                const rankA = RANKS.indexOf(a.split('_of_')[0]);
-                const rankB = RANKS.indexOf(b.split('_of_')[0]);
-                
-                if (gameState.revolution) {
-                    return rankB - rankA; // 革命時は強いカードを優先
-                } else {
-                    return rankA - rankB; // 通常時は弱いカードを優先
-                }
-            });
-            return validCards[0];
+
+        if (gameState.finishedPlayers.length >= gameState.players.length - 1) {
+            setTimeout(processGameEnd, 3000);
+            return true;
         }
     }
-    
-    // デフォルトの選択（ランダム）
-    return validCards[Math.floor(Math.random() * validCards.length)];
+    return false;
 }
 
-// ゲーム終了処理
-function finishGame() {
-    // まだ階級が決まっていないプレイヤーには大貧民を割り当て
-    gameState.players.forEach(player => {
-        if (player.rank === null) {
-            player.rank = RANKINGS[4]; // 大貧民
+function processGameEnd() {
+    const loserIndex = gameState.players.findIndex((p, idx) => !gameState.finishedPlayers.includes(idx));
+    if (loserIndex !== -1) {
+        const loser = gameState.players[loserIndex];
+        if (loser.rank === null) {
+            loser.rank = RANKINGS[3];
+            gameState.finishedPlayers.push(loserIndex); 
+            const char = CHARACTERS[loser.character];
+            if (char) showDialogue(loser.name, getRandomDialogue(char, 'lose', loser), loser.character, 'lose');
+            else showDialogue(loser.name, "負けました...", "player", 'lose');
         }
+    }
+    
+    gameState.players.forEach((p, idx) => {
+        const rank = gameState.finishedPlayers.indexOf(idx);
+        gameState.prevRanks[p.id] = rank;
     });
-    
-    // 結果を表示
-    let resultMessage = 'ゲーム終了！\n\n';
-    gameState.players.forEach(player => {
-        resultMessage += `${player.name}: ${player.rank}\n`;
+
+    setTimeout(showResultModal, 2500);
+}
+
+function showResultModal() {
+    resultList.innerHTML = '';
+    gameState.finishedPlayers.forEach((playerIdx, rank) => {
+        const p = gameState.players[playerIdx];
+        const row = document.createElement('div');
+        row.className = `result-row rank-${rank + 1}`;
+        row.innerHTML = `<span class="result-rank">${rank + 1}位</span><span class="result-name">${p.name}</span><span class="result-title">${RANKINGS[rank] || '都落ち'}</span>`;
+        resultList.appendChild(row);
     });
-    
-    alert(resultMessage);
-    
-    // ゲームをリセット
+    resultModal.style.display = 'block';
+}
+
+nextRoundButton.onclick = () => { gameState.round++; startRound(); };
+titleButton.onclick = () => { location.reload(); };
+
+function advanceTurn() {
+    let nextIndex = (gameState.currentPlayerIndex + 1) % gameState.players.length;
+    while (gameState.finishedPlayers.includes(nextIndex)) {
+        nextIndex = (nextIndex + 1) % gameState.players.length;
+    }
+    gameState.currentPlayerIndex = nextIndex;
+    updateGameDisplay();
+}
+
+function aiTurn() {
+    if (gameState.isProcessing) return; // ロック中
+
+    const aiPlayer = gameState.players[gameState.currentPlayerIndex];
+    if (gameState.finishedPlayers.includes(gameState.currentPlayerIndex)) {
+        advanceTurn();
+        return;
+    }
+
+    if (checkFieldClear()) {
+        setTimeout(aiTurn, 1000); 
+        return;
+    }
+
+    const charData = CHARACTERS[aiPlayer.character];
+    const aiParams = charData ? (charData.aiParams || { aggressiveness: 0.5 }) : { aggressiveness: 0.5 };
+
+    if (Math.random() < 0.4) {
+        showDialogue(aiPlayer.name, getRandomDialogue(charData, 'think', aiPlayer), aiPlayer.character, 'think');
+    }
+
+    const playableMoves = getPlayableMoves(aiPlayer.hand);
+
+    if (playableMoves.length === 0) {
+        setTimeout(() => {
+            showDialogue(aiPlayer.name, getRandomDialogue(charData, 'pass', aiPlayer), aiPlayer.character, 'pass');
+            advanceTurn();
+        }, 1000);
+        return;
+    }
+
+    let selectedMove = null;
+    playableMoves.sort((a, b) => getCardStrength(a[0]) - getCardStrength(b[0]));
+
+    if (aiParams.aggressiveness > 0.7) {
+        selectedMove = playableMoves[playableMoves.length - 1];
+        const specialMove = playableMoves.find(m => checkEightCut(m) || checkRevolution(m));
+        if (specialMove && Math.random() < aiParams.aggressiveness) selectedMove = specialMove;
+    } else if (aiParams.cooperativeness > 0.7) {
+        selectedMove = playableMoves[0];
+    } else {
+        const idx = Math.floor(Math.random() * playableMoves.length);
+        selectedMove = playableMoves[idx];
+    }
+
+    // AI思考時間を少しとってからカードを出す
+    gameState.isProcessing = true;
     setTimeout(() => {
-        if (confirm('もう一度遊びますか？')) {
-            resetGame();
+        gameState.isProcessing = false;
+        
+        let situation = 'play';
+        if (checkRevolution(selectedMove)) situation = 'revolution';
+        else if (selectedMove.includes(JOKER) || selectedMove.includes(RED_JOKER)) situation = 'joker';
+        else if (getCardStrength(selectedMove[0]) > 10) situation = 'pressure';
+        
+        const isJoker = (c) => c === JOKER || c === RED_JOKER;
+        const normalCards = selectedMove.filter(c => !isJoker(c));
+        
+        if (selectedMove.length === 2 && situation === 'play') situation = 'pair';
+        if (selectedMove.length >= 3 && situation === 'play') {
+             if (normalCards.length > 1 && normalCards[0].split('_of_')[0] !== normalCards[1].split('_of_')[0]) situation = 'stairs';
+             else if (normalCards.length === 1 && selectedMove.length >=3) situation = 'pair'; 
         }
-    }, 1000);
+        if (selectedMove.length === 1 && situation === 'play') situation = 'single';
+
+        showDialogue(aiPlayer.name, getRandomDialogue(charData, situation, aiPlayer), aiPlayer.character, situation);
+        
+        executePlay(aiPlayer, selectedMove, selectedMove);
+    }, 1500);
 }
 
-// ゲームリセット
-function resetGame() {
-    gameState.players = [];
-    gameState.currentPlayerIndex = 0;
-    gameState.field = [];
-    gameState.deck = [];
-    gameState.selectedCards = [];
-    gameState.revolution = false;
-    gameState.finishedPlayers = [];
-    
-    // 画面を初期化
-    setupScreen.style.display = 'block';
-    gameScreen.style.display = 'none';
-    
-    // キャラクター選択をリセット
-    characterOptions.forEach(option => {
-        option.classList.remove('selected');
+function getPlayableMoves(hand) {
+    let moves = [];
+    const fieldQty = gameState.field.length;
+    const fieldStrength = fieldQty > 0 ? getCardStrength(gameState.field[0]) : -1;
+
+    // 単体
+    if (fieldQty === 0 || fieldQty === 1) {
+        hand.forEach(card => {
+            if (fieldQty === 0 || getCardStrength(card) > fieldStrength) moves.push([card]);
+        });
+    }
+
+    const rankGroups = {};
+    const cardsBySuit = {};
+    const jokers = [];
+
+    hand.forEach(card => {
+        if (card === JOKER || card === RED_JOKER) {
+            jokers.push(card);
+            return;
+        }
+        const rank = card.split('_of_')[0];
+        const suit = card.split('_of_')[1];
+        if (!rankGroups[rank]) rankGroups[rank] = [];
+        rankGroups[rank].push(card);
+        if (!cardsBySuit[suit]) cardsBySuit[suit] = [];
+        cardsBySuit[suit].push(card);
     });
-    gameState.selectedCharacters = [];
+
+    // ペア
+    Object.keys(rankGroups).forEach(rank => {
+        const cards = rankGroups[rank];
+        if (fieldQty === 0) {
+            if (cards.length >= 2) moves.push(cards.slice(0, 2));
+            if (cards.length >= 3) moves.push(cards.slice(0, 3));
+            if (cards.length >= 4) moves.push(cards.slice(0, 4));
+            if (jokers.length > 0 && cards.length >= 1) moves.push([...cards.slice(0, 1), jokers[0]]);
+        } else {
+            if (cards.length >= fieldQty) {
+                const move = cards.slice(0, fieldQty);
+                if (getCardStrength(move[0]) > fieldStrength) moves.push(move);
+            }
+            if (fieldQty === 2 && cards.length === 1 && jokers.length > 0) {
+                 const move = [cards[0], jokers[0]];
+                 if (getCardStrength(move[0]) > fieldStrength) moves.push(move);
+            }
+        }
+    });
+
+    // 階段
+    Object.keys(cardsBySuit).forEach(suit => {
+        const cards = cardsBySuit[suit].sort((a,b) => getRankValue(a) - getRankValue(b));
+        if (cards.length < 3) return;
+        for (let i = 0; i < cards.length; i++) {
+            let sequence = [cards[i]];
+            for (let j = i + 1; j < cards.length; j++) {
+                if (getRankValue(cards[j]) === getRankValue(cards[j-1]) + 1) {
+                    sequence.push(cards[j]);
+                    if (sequence.length >= 3) {
+                         if (fieldQty === 0 || (fieldQty === sequence.length && getCardStrength(sequence[0]) > fieldStrength)) {
+                             moves.push([...sequence]);
+                         }
+                    }
+                } else {
+                    break;
+                }
+            }
+        }
+    });
+    if ((fieldQty === 0 || fieldQty === 1) && jokers.length > 0) {
+        jokers.forEach(j => moves.push([j]));
+    }
+    return moves;
 }
 
+function createDialogueElement() {
+    if (document.getElementById('dialogue')) return;
+    const div = document.createElement('div');
+    div.id = 'dialogue';
+    div.style.position = 'fixed'; 
+    div.style.zIndex = '9999'; 
+    document.body.appendChild(div);
+}
+
+function showDialogue(name, text, characterId = null, situation = null) {
+    const el = document.getElementById('dialogue');
+    if (!text) return;
+    let iconHtml = '';
+    if (characterId === 'player' && gameState.playerAvatar) {
+        iconHtml = `<div class="dialogue-icon"><img src="${gameState.playerAvatar}" alt="${name}"></div>`;
+    } else if (characterId === 'player') { 
+         iconHtml = `<div class="dialogue-icon"><div class="fallback-icon">私</div></div>`;
+    } else if (characterId && CHARACTERS[characterId]) {
+        const baseImg = CHARACTERS[characterId].portrait || '';
+        const fileNameOnly = baseImg.split('/').pop();
+        const emotionImg = situation ? baseImg.replace('.png', `_${situation}.png`) : baseImg;
+        const emotionFileOnly = emotionImg.split('/').pop();
+        iconHtml = `<div class="dialogue-icon"><img src="${emotionImg}" onerror="this.src='${emotionFileOnly}'; this.onerror=function(){ this.src='${baseImg}'; this.onerror=function(){ this.src='${fileNameOnly}'; this.onerror=function(){ this.style.display='none'; this.nextElementSibling.style.display='flex'; }}}" alt="${name}"><div class="fallback-icon" style="display:none;">${name.charAt(0)}</div></div>`;
+    } else {
+        const initial = name.charAt(0);
+        iconHtml = `<div class="dialogue-icon"><div class="fallback-icon">${initial}</div></div>`;
+    }
+    el.innerHTML = `<div class="dialogue-container">${iconHtml}<div class="dialogue-content"><span class="dialogue-name">${name}</span><div class="dialogue-text">${text}</div></div></div>`;
+    el.style.display = 'block';
+    if (el.dataset.visible !== "true") {
+        el.classList.remove('pop-in');
+        void el.offsetWidth;
+        el.classList.add('pop-in');
+        el.dataset.visible = "true";
+    }
+    if (el.hideTimer) clearTimeout(el.hideTimer);
+    el.hideTimer = setTimeout(() => {
+        el.style.display = 'none';
+        el.dataset.visible = "false";
+    }, 4000); 
+}
+
+function showNotification(text) {
+    const el = document.getElementById('game-notification');
+    if (!el) return;
+    el.textContent = text;
+    el.classList.add('show');
+    setTimeout(() => { el.classList.remove('show'); }, 3000);
+}
+
+function getRandomDialogue(char, type, playerObj) {
+    if (!char || !char.voiceLinesDetailed) return "...";
+    const otherSurvivors = gameState.players.filter(p => p.id !== playerObj.id && !gameState.finishedPlayers.includes(gameState.players.indexOf(p)));
+    if (otherSurvivors.length > 0 && char.pairLinesDetailed) {
+        const validTargets = otherSurvivors.filter(target => char.pairLinesDetailed[target.character] && char.pairLinesDetailed[target.character][type]);
+        if (validTargets.length > 0 && Math.random() < 0.4) {
+            const target = validTargets[Math.floor(Math.random() * validTargets.length)];
+            const pLines = char.pairLinesDetailed[target.character][type];
+            return pLines[Math.floor(Math.random() * pLines.length)];
+        }
+    }
+    const lines = char.voiceLinesDetailed[type];
+    if (!lines || lines.length === 0) {
+        if (type === 'drop') return "……っ。";
+        if (type === 'tributeGive') return "どうぞ。";
+        if (type === 'tributeReceive') return "ありがとう。";
+        return "...";
+    }
+    return lines[Math.floor(Math.random() * lines.length)];
+}
