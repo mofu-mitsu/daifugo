@@ -4176,7 +4176,7 @@ const CHARACTER_LIST = [
     "name": "みりん",
     "MBTI": "ENFP",
     "enneagram": "3w2",
-    "profile": "萩枝美琳（はぎえだ みりん）\n地雷系あざとい黒猫女子。可愛いものが大好き",
+    "profile": "萩枝 美琳（はぎえだ みりん）\n地雷系あざとい黒猫女子。可愛いものが大好き",
     "gender": "女",
     "portrait": "images/characters/mirin.png",
     "pairCandidates": [
