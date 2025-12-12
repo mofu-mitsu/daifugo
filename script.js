@@ -211,55 +211,57 @@ let tempSelectedCharacters = [];
 let isSelectingForSpectator = false;
 let scrollPosition = 0; // スクロール位置保存用
 
+// ==========================================
+// ★修正: 決定ボタンへワープ＆スクロール制御
+// ==========================================
 const jumpBtn = document.getElementById('modal-jump-btn');
 
-// 矢印ボタンクリックイベント
 if (jumpBtn) {
     jumpBtn.onclick = (e) => {
         e.preventDefault();
         e.stopPropagation();
+        
+        // ★修正: 確実にキャラ選択の箱を取得してスクロールさせる
         const modalContent = document.querySelector('.character-modal-content');
         if (modalContent) {
             modalContent.scrollTo({
-                top: modalContent.scrollHeight,
+                top: modalContent.scrollHeight, // 一番下まで
                 behavior: 'smooth'
             });
         }
     };
 }
 
-function openCharacterModal(isSpectator) {
-    isSelectingForSpectator = isSpectator;
-    tempSelectedCharacters = [...gameState.selectedCharacters];
-
-    const title = characterModal.querySelector('h2');
-    if (title) title.textContent = isSpectator ? "観戦する4人を選択（最初は手前）" : "対戦相手を3人選択";
-
-    characterModal.style.display = 'block';
-    renderCharacterGrid();
-    updateModalSelectionDisplay();
-
-    // 背景ロック
+// モーダルを開く処理の強化
+const originalOpenCharacterModal = openCharacterModal;
+openCharacterModal = function(isSpectator) {
+    // 元の処理を実行
+    originalOpenCharacterModal(isSpectator);
+    
+    // ロック（スマホ対策）
     document.documentElement.classList.add('modal-open');
     document.body.classList.add('modal-open');
-
-    // 矢印ボタン表示
-    if (jumpBtn) jumpBtn.style.setProperty('display', 'flex', 'important');
-
-    const firstId = Object.keys(CHARACTERS)[0];
-    if (firstId) showCharacterDetails(CHARACTERS[firstId]);
-}
-
-function closeCharacterModalFunc() {
-    characterModal.style.display = 'none';
     
-    // 背景ロック解除
+    // ★修正: 観戦モードでも通常モードでも、確実に矢印を出す！
+    if (jumpBtn) {
+        // display: flex にして強制表示（importantをつける勢いで）
+        jumpBtn.style.display = 'flex';
+    }
+};
+
+// モーダルを閉じる処理
+const originalCloseCharacterModalFunc = closeCharacterModalFunc;
+closeCharacterModalFunc = function() {
+    originalCloseCharacterModalFunc();
+    
     document.documentElement.classList.remove('modal-open');
     document.body.classList.remove('modal-open');
-
-    // 矢印ボタン非表示
-    if (jumpBtn) jumpBtn.style.display = 'none';
-}
+    
+    // 矢印を隠す
+    if (jumpBtn) {
+        jumpBtn.style.display = 'none';
+    }
+};
 
 closeCharacterModal.onclick = closeCharacterModalFunc;
 
