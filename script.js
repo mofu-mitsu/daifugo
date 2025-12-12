@@ -1127,7 +1127,7 @@ function advanceTurn() {
     updateGameDisplay();
 }
 
-// AIターン処理（修正版：プレイヤーパス回避）
+// AIターン処理（★修正：プレイヤーのパス処理を回避して、AIが自分で喋る）
 function aiTurn() {
     if (gameState.isProcessing || gameState.isTalking) return; 
 
@@ -1152,14 +1152,15 @@ function aiTurn() {
 
     const playableMoves = getPlayableMoves(aiPlayer.hand);
 
-    // パスの場合
+    // パスの場合（★ここを修正）
     if (playableMoves.length === 0) {
         gameState.isProcessing = true;
         setTimeout(() => {
+            // キャラクター自身のセリフでパス
             showDialogue(aiPlayer.name, getRandomDialogue(charData, 'pass', aiPlayer), aiPlayer.character, 'pass');
             setTimeout(() => {
                 gameState.isProcessing = false;
-                // ★修正: playerPass()ではなく、直接次のターンへ進める
+                // playerPass() ではなく、直接 advanceTurn() を呼ぶことで「プレイヤーのパス処理」を回避
                 advanceTurn(); 
             }, 1500); 
         }, 800);
@@ -1447,11 +1448,11 @@ const jumpBtn = document.getElementById('modal-jump-btn');
 
 if (jumpBtn) {
     jumpBtn.onclick = () => {
-        // ★修正: モーダル全体ではなく、キャラ一覧エリアをスクロールさせる
-        const grid = document.getElementById('character-grid');
-        if (grid) {
-            grid.scrollTo({
-                top: grid.scrollHeight,
+        // ★修正: 矢印ボタンを押したら「character-modal-content」自体をスクロールさせる
+        const modalContent = document.querySelector('.character-modal-content');
+        if (modalContent) {
+            modalContent.scrollTo({
+                top: modalContent.scrollHeight,
                 behavior: 'smooth'
             });
         }
