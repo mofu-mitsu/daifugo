@@ -342,34 +342,30 @@ html.modal-open, body.modal-open {
 .dialogue-text { font-size: 1.1rem; font-weight: bold; color: #333; }
 
 /* =========================================
-   ★スマホ対応（タイトル見切れ絶対直す版）
-   ========================================= */
-/* =========================================
-   ★スマホ対応（タイトル位置＆間隔 最終調整版）
+   ★スマホ対応（タイトル位置＆ゲーム画面 完全修復版）
    ========================================= */
 @media (max-width: 768px) {
-    /* === ①全体レイアウト === */
+    /* === ①全体設定 === */
     html, body {
         height: 100%;
-        /* スクロールは自然に任せる */
+        overflow-x: hidden; /* 横揺れ防止 */
     }
     
     #game-container { 
-        /* ★ここ修正: 上の余白を「100px」にして、少し下げる */
-        /* ※ここを増やすと、全体がもっと下に下がるよ！ */
-        padding-top: 100px !important;
+        /* ★修正: 上をガッツリ140px空ける（BGMボタン回避） */
+        padding-top: 140px !important;
         padding-left: 20px !important;
         padding-right: 20px !important;
         padding-bottom: 50px !important;
         
         width: 100%;
-        min-height: 100dvh; /* 画面の高さ確保 */
+        min-height: 100dvh;
         
         border-radius: 0;
         border: none;
         margin: 0;
         
-        /* 上から順に並べる */
+        /* 縦並びにする（タイトル画面用） */
         display: flex !important;
         flex-direction: column !important;
         justify-content: flex-start !important; 
@@ -377,21 +373,59 @@ html.modal-open, body.modal-open {
     }
 
     h1 { 
-        /* ★ここ修正: タイトルの「上」に余裕を持たせる */
-        margin-top: 30px !important; 
+        /* ★修正: 上のマージンを消して、paddingで位置調整する */
+        margin-top: 0 !important; 
+        margin-bottom: 30px !important;
         
-        /* ★ここ修正: タイトルと下の「プレイヤー設定」の間隔 */
-        /* ここを広げすぎると間延びするから、20pxくらいが丁度いいかも */
-        margin-bottom: 20px !important;
-        
-        font-size: 1.8em; 
+        font-size: 1.6em; /* 少し小さくして見切れ防止 */
         line-height: 1.2;
         flex-shrink: 0;
         position: relative;
         z-index: 10;
+        width: 100%; /* 横幅いっぱいに */
+        word-wrap: break-word; /* 長い単語での改行 */
     }
     
-    /* === ②モーダル（中身） === */
+    /* === ②ゲーム画面の救出（ここが超重要！） === */
+    /* 親要素の flex設定をここで打ち消して、カードを置けるようにする */
+    #game-screen {
+        width: 100% !important;
+        flex-grow: 1;
+        display: block !important; /* flex解除！ */
+        position: relative;
+        margin-top: -20px; /* 少し上に詰める */
+    }
+
+    #field {
+        /* 場のカードエリア */
+        height: 280px !important; /* スマホ用に少し小さく */
+        margin: 10px 0 !important;
+    }
+
+    #player-hand { 
+        /* 手札エリア：横スクロール復活 */
+        height: 160px !important; 
+        padding: 10px 10px !important; 
+        justify-content: flex-start !important;
+        
+        display: flex !important;
+        flex-wrap: nowrap !important; /* 折り返し禁止 */
+        overflow-x: auto !important;  /* 横スクロール許可 */
+        -webkit-overflow-scrolling: touch;
+        
+        width: 100%;
+        background: rgba(255, 255, 255, 0.4);
+    }
+    
+    /* === ③カードサイズ調整 === */
+    .card { 
+        width: 70px !important; /* 少し小さくして並べやすく */
+        height: 105px !important; 
+        margin-right: -25px !important; /* 重なり調整 */
+        flex-shrink: 0 !important; /* 潰れないように */
+    }
+
+    /* === ④モーダル（キャラ選択など） === */
     .modal {
         padding: 0 !important;
         align-items: flex-start !important;
@@ -408,15 +442,12 @@ html.modal-open, body.modal-open {
         left: 0 !important;
         border: none !important;
         
-        /* モーダルの中もタイトルと被らないように上を空ける */
-        padding-top: 120px !important;
+        padding-top: 100px !important;
         padding-bottom: 150px !important; 
-        
         overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch;
     }
     
-    /* === ③ボタン類 === */
+    /* === ⑤ボタン類 === */
     .close {
         position: fixed !important;
         top: 20px !important;
@@ -432,15 +463,11 @@ html.modal-open, body.modal-open {
         display: block !important;
     }
 
-    /* 矢印ボタンの位置 */
     #modal-jump-btn { 
         top: 100px !important; 
         right: 20px !important;
     }
     
-    /* === ④カード・パーツ === */
-    .card { width: 80px; height: 120px; margin-right: -35px; }
-    #player-hand { height: 180px; padding: 10px 20px; justify-content: flex-start; }
     #dialogue { width: 95%; bottom: 80px; }
     .character-section-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 }
