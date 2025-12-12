@@ -1448,7 +1448,7 @@ const jumpBtn = document.getElementById('modal-jump-btn');
 
 if (jumpBtn) {
     jumpBtn.onclick = () => {
-        // ★修正: 矢印ボタンを押したら「character-modal-content」自体をスクロールさせる
+        // ★修正: 「character-modal-content」自体をスクロールさせる！
         const modalContent = document.querySelector('.character-modal-content');
         if (modalContent) {
             modalContent.scrollTo({
