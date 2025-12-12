@@ -147,6 +147,7 @@ button:active { transform: translateY(-2px); }
     box-shadow: 0 10px 20px rgba(0,0,0,0.2); z-index: 10000;
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     pointer-events: none; white-space: nowrap;
+    z-index: 2147483647 !important;
 }
 #game-notification.show { transform: translate(-50%, 0); }
 
@@ -286,15 +287,14 @@ html.modal-open, body.modal-open {
    ★修正1: 矢印ボタン（PC・スマホ共通）
    左下(bottom)の設定を消して、右上(top/right)にするよ！
    ========================================= */
+/* =========================================
+   ★修正: 矢印ボタン（位置をもっと下に）
+   ========================================= */
 #modal-jump-btn {
-    position: fixed !important; /* 強制的に画面固定 */
-    top: 80px !important;       /* 上から80px（音楽ボタンの下） */
-    right: 20px !important;     /* 右から20px */
-    z-index: 2147483647;        /* 誰よりも手前に！ */
-    
-    /* 下の設定は削除または上書き */
-    bottom: auto !important;
-    left: auto !important;
+    position: fixed !important;
+    top: 130px !important;    /* ★80px → 130px に変更（BGMボタンから離す） */
+    right: 20px !important;
+    z-index: 2147483647 !important; /* 最強のz-index */
     
     width: 50px; height: 50px;
     border-radius: 50%;
@@ -305,11 +305,14 @@ html.modal-open, body.modal-open {
     border: 3px solid white;
     cursor: pointer;
     
+    /* display: none; ←これを消してJS制御だけにする */
     display: none; 
     align-items: center;
     justify-content: center;
     animation: bounce 2s infinite;
 }
+
+
 
 /* 下向きに弾むアニメーション */
 @keyframes bounce {
