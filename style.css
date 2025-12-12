@@ -18,7 +18,7 @@
     --shadow-strong: 0 25px 50px rgba(0,0,0,0.3);
 }
 
-/* ★重要: htmlとbodyの初期設定 */
+/* 二重スクロール防止の基本設定 */
 html, body {
     width: 100%;
     min-height: 100vh;
@@ -27,14 +27,12 @@ html, body {
     overflow-x: hidden;
 }
 
-/* ★重要: モーダルが開いている時は、外側を完全に固定して動かなくする */
-html.modal-open, body.modal-open {
+/* モーダルが開いている時は背景を固定 */
+body.modal-open {
     overflow: hidden !important;
-    height: 100dvh !important; /* 画面の高さに固定 */
     position: fixed;
     width: 100%;
-    top: 0;
-    left: 0;
+    height: 100%;
 }
 
 body {
@@ -220,7 +218,7 @@ button:active { transform: translateY(-2px); }
 
 @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
-/* 閉じるボタン（左上に配置） */
+/* 閉じるボタン（PC版デフォルト） */
 .close {
     color: #aaa; font-size: 32px; font-weight: bold; cursor: pointer;
     transition: color 0.3s; 
@@ -339,7 +337,7 @@ button:active { transform: translateY(-2px); }
     /* 白い箱を全画面化（100dvhでアドレスバー対策） */
     .modal-content, .character-modal-content {
         width: 100% !important; 
-        height: 100dvh !important; /* dVHでアドレスバー対策 */
+        height: 100dvh !important; /* アドレスバー変動対策 */
         max-width: none !important;
         max-height: none !important;
         margin: 0 !important;
@@ -347,7 +345,7 @@ button:active { transform: translateY(-2px); }
         
         top: 0; left: 0;
         
-        /* BGMボタンなどと被らないように上だけ少し開ける */
+        /* 余白調整：上はBGMボタン回避のために広げる */
         padding-top: 80px !important; 
         
         /* 下の余白を多めに取って、決定ボタンが見切れないようにする */
@@ -356,23 +354,37 @@ button:active { transform: translateY(-2px); }
         animation: none;
     }
     
+    /* ★閉じるボタン（スマホ）：画面左上に固定して白背景をつける */
+    .close {
+        position: fixed !important; /* 画面に対して固定 */
+        top: 20px !important;
+        left: 20px !important;
+        z-index: 99999 !important;
+        
+        /* 押しやすくするために背景をつける */
+        background: rgba(255, 255, 255, 0.8);
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 40px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
     /* グリッドを強制2列に */
     .character-section-grid {
         grid-template-columns: repeat(2, 1fr); 
         gap: 10px;
     }
     
-    /* ★矢印ボタン（スマホ：右上のBGMボタンの下に配置！） */
+    /* ★矢印ボタン（スマホ：左下に固定） */
     #modal-jump-btn { 
-        bottom: auto !important; /* 下基準解除 */
-        left: auto !important;   /* 左基準解除 */
+        position: fixed !important;
+        bottom: 20px !important; 
+        left: 20px !important;
+        z-index: 2147483647 !important;
         
-        top: 90px !important;    /* 上から90px（BGMボタンの下） */
-        right: 20px !important;  /* 右から20px */
-        
-        width: 50px !important;
-        height: 50px !important;
-        font-size: 1.2rem !important;
+        width: 60px !important;
+        height: 60px !important;
     }
     
     .result-row { flex-direction: column; text-align: center; padding: 10px; }
