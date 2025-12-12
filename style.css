@@ -20,10 +20,18 @@
 
 html, body {
     width: 100%;
-    height: 100%; /* ここ重要 */
+    min-height: 100vh;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+}
+
+/* モーダルが開いている時は背景を固定 */
+html.modal-open, body.modal-open {
+    overflow: hidden !important;
+    height: 100% !important;
+    position: fixed;
+    width: 100%;
 }
 
 body {
@@ -166,7 +174,7 @@ button:active { transform: translateY(-2px); }
 .result-name { font-size: 1.2rem; flex-grow: 1; text-align: left; padding-left: 20px; }
 .result-title { font-weight: bold; }
 
-/* BGMボタン（固定：右上） */
+/* BGMボタン（PC版: 右上） */
 .bgm-btn {
     position: fixed; top: 20px; right: 20px; z-index: 10001;
     width: 50px; height: 50px; border-radius: 50%; background: white; color: #888;
@@ -183,7 +191,7 @@ button:active { transform: translateY(-2px); }
 }
 
 /* =========================================
-   モーダル共通（PC版）
+   モーダル共通（PC版は中央寄せ）
    ========================================= */
 .modal {
     display: none; position: fixed; z-index: 3000; left: 0; top: 0;
@@ -269,7 +277,7 @@ button:active { transform: translateY(-2px); }
     transition: all 0.3s;
 }
 
-/* ★矢印ボタン（PC版：左下） */
+/* ★矢印ボタン（PC版：左下に固定） */
 #modal-jump-btn {
     position: fixed; 
     bottom: 30px; left: 30px;
@@ -308,7 +316,7 @@ button:active { transform: translateY(-2px); }
 .dialogue-text { font-size: 1.1rem; font-weight: bold; color: #333; }
 
 /* =========================================
-   ★スマホ対応（徹底修正！）
+   ★スマホ対応（全画面・余白削除・スクロール一本化）
    ========================================= */
 @media (max-width: 768px) {
     #game-container { padding: 20px; width: 100%; border-radius: 15px; }
@@ -319,58 +327,21 @@ button:active { transform: translateY(-2px); }
     
     .character-details { flex-direction: column; text-align: center; }
     
-    /* モーダルを「画面上端」から配置 */
+    /* モーダル枠自体を画面上端に固定 */
     .modal {
-        align-items: flex-start !important; 
+        display: block !important; /* Flexbox解除 */
         padding: 0 !important;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        overflow: hidden; /* モーダル自体のスクロール禁止 */
     }
 
-    /* 白い箱を全画面化（100dvhでアドレスバー対策） */
+    /* 白い箱を「画面そのもの」にする */
+    /* 100dvh でアドレスバーの伸縮に対応し、画面いっぱいに広げる */
     .modal-content, .character-modal-content {
+        position: fixed !important; /* 絶対固定 */
+        top: 0; left: 0; bottom: 0; right: 0;
         width: 100% !important; 
-        height: 100dvh !important; /* アドレスバー変動対策 */
+        height: 100dvh !important; 
         max-width: none !important;
-        max-height: none !important;
-        margin: 0 !important;
-        border-radius: 0 !important;
-        
-        top: 0; left: 0;
-        
-        /* 余白調整：上はBGMボタン回避 */
-        padding-top: 80px !important; 
-        
-        /* 下の余白を確保して見切れ防止 */
-        padding-bottom: 120px !important; 
-        
-        animation: none;
-        
-        /* 内側スクロールをスムーズに */
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    /* グリッドを強制2列に */
-    .character-section-grid {
-        grid-template-columns: repeat(2, 1fr); 
-        gap: 10px;
-    }
-    
-    /* ★矢印ボタン（スマホ：左下に確実に配置） */
-    #modal-jump-btn { 
-        position: fixed !important;
-        /* これで上書きされない */
-        top: auto !important; 
-        right: auto !important;
-        
-        bottom: 30px !important; 
-        left: 20px !important;
-        
-        z-index: 2147483647 !important;
-        width: 50px !important;
-        height: 50px !important;
-        font-size: 1.2rem !important;
-    }
-    
-    .result-row { flex-direction: column; text-align: center; padding: 10px; }
-    .result-name { padding: 5px 0; font-size: 1.1rem; }
-    .result-title { margin-top: 5px; color: #6e8efb; }
-}
+        max-height: none !importa
