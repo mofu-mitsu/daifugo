@@ -699,19 +699,22 @@ function performCardExchange() {
         sortHand(loser.hand);
 
         // --- ★追加: 何をもらったか通知する（人間プレイヤー関連のみ） ---
+        // あなたが勝者の場合（強いカードをもらった通知）
         if (winner.isHuman) {
             const cardNames = giveToWinner.map(c => getCardNameJP(c)).join('」と「');
             setTimeout(() => {
-                showNotification(`${loser.name}から「${cardNames}」を貰いました！`);
+                showNotification(`${loser.name}から「${cardNames}」を献上されました！`);
             }, delay + 1000);
-        } else if (loser.isHuman) {
-            const cardNames = giveToLoser.map(c => getCardNameJP(c)).join('」と「');
+        } 
+        // あなたが敗者の場合（強いカードを取られた通知）
+        else if (loser.isHuman) {
+            const cardNames = giveToWinner.map(c => getCardNameJP(c)).join('」と「');
             setTimeout(() => {
-                showNotification(`${winner.name}から「${cardNames}」が返ってきました…`);
+                showNotification(`${winner.name}に「${cardNames}」を没収されました…`);
             }, delay + 1000);
         }
 
-        // --- セリフ再生 ---
+        // --- キャラクターのセリフ再生 ---
         if (!winner.isHuman) {
             setTimeout(() => {
                 const char = CHARACTERS[winner.character];
@@ -735,7 +738,7 @@ function performCardExchange() {
     // 富豪(1位) <-> 貧民(2位) : 1枚交換
     processExchange(1, 2, 1);
     
-    // 画面更新
+    // 画面更新（手札が変わったことを反映）
     updateGameDisplay();
 
     // 次の処理へ
