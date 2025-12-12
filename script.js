@@ -304,7 +304,7 @@ function preloadCharacterImages() {
 }
 
 // ==========================================
-// キャラ選択
+// キャラ選択（★ここ修正：CSSで制御しやすいように変更）
 // ==========================================
 let tempSelectedCharacters = []; 
 let isSelectingForSpectator = false;
@@ -320,12 +320,18 @@ function openCharacterModal(isSpectator) {
     renderCharacterGrid();
     updateModalSelectionDisplay();
     
+    // 背景ロック＆矢印表示
+    document.body.classList.add('modal-open');
+    if (jumpBtn) jumpBtn.style.display = 'flex';
+
     const firstId = Object.keys(CHARACTERS)[0];
     if (firstId) showCharacterDetails(CHARACTERS[firstId]);
 }
 
 function closeCharacterModalFunc() {
     characterModal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    if (jumpBtn) jumpBtn.style.display = 'none';
 }
 
 function renderCharacterGrid() {
@@ -340,10 +346,8 @@ function renderCharacterGrid() {
         characterGrid.appendChild(header);
 
         const gridContainer = document.createElement('div');
-        gridContainer.style.display = 'grid';
-        gridContainer.style.gridTemplateColumns = 'repeat(auto-fill, minmax(130px, 1fr))';
-        gridContainer.style.gap = '15px';
-        gridContainer.style.width = '100%';
+        // ★修正: インラインスタイルをやめてクラスを付与（CSSで制御するため）
+        gridContainer.className = 'character-section-grid';
         
         ids.forEach(id => {
             const charData = CHARACTERS[id];
