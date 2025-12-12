@@ -1275,3 +1275,44 @@ function getRandomDialogue(char, type, playerObj) {
     }
     return lines[Math.floor(Math.random() * lines.length)];
 }
+
+// ==========================================
+// BGM制御
+// ==========================================
+const bgmAudio = document.getElementById('bgm-audio');
+const bgmBtn = document.getElementById('bgm-toggle');
+let isBgmPlaying = false;
+
+// BGMボタンのクリックイベント
+if (bgmBtn && bgmAudio) {
+    bgmAudio.volume = 0.3; // 音量は控えめに（0.0〜1.0）
+
+    bgmBtn.addEventListener('click', () => {
+        if (isBgmPlaying) {
+            bgmAudio.pause();
+            isBgmPlaying = false;
+            bgmBtn.classList.remove('playing');
+            bgmBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+        } else {
+            // ユーザーアクションが必要なのでここで再生
+            bgmAudio.play().then(() => {
+                isBgmPlaying = true;
+                bgmBtn.classList.add('playing');
+                bgmBtn.innerHTML = '<i class="fa-solid fa-music"></i>';
+            }).catch(e => console.log("BGM play failed:", e));
+        }
+    });
+}
+
+// ゲーム開始時にBGMを自動再生（ユーザーアクション後なら許可されることが多い）
+function startBgm() {
+    if (bgmAudio && !isBgmPlaying) {
+        bgmAudio.play().then(() => {
+            isBgmPlaying = true;
+            bgmBtn.classList.add('playing');
+            bgmBtn.innerHTML = '<i class="fa-solid fa-music"></i>';
+        }).catch(e => {
+            console.log("Auto-play blocked, waiting for interaction.");
+        });
+    }
+}
