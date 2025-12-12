@@ -1137,7 +1137,7 @@ function advanceTurn() {
 
 // AIターン処理（スピード調整＋パス修正版）
 function aiTurn() {
-    if (gameState.isProcessing || gameState.isTalking) return; // ロック
+    if (gameState.isProcessing || gameState.isTalking) return; 
 
     const aiPlayer = gameState.players[gameState.currentPlayerIndex];
     if (gameState.finishedPlayers.includes(gameState.currentPlayerIndex)) {
@@ -1162,22 +1162,21 @@ function aiTurn() {
 
     // パスの場合
     if (playableMoves.length === 0) {
-        gameState.isProcessing = true; // ロック開始
+        gameState.isProcessing = true;
         setTimeout(() => {
             showDialogue(aiPlayer.name, getRandomDialogue(charData, 'pass', aiPlayer), aiPlayer.character, 'pass');
-            // セリフ表示後に処理続行
             setTimeout(() => {
                 gameState.isProcessing = false;
-                advanceTurn(); // ★ここを修正！playerPass()ではなく直接進める
-            }, 3000); // 3秒待機
-        }, 1000);
+                // パス処理へ（ここも少し待ってから進むように変更）
+                playerPass(); 
+            }, 1500); // セリフを読んでから1.5秒後にパス実行
+        }, 800);
         return;
     }
 
-    // AI思考
+    // AI思考（カード選び）
     let selectedMove = null;
     playableMoves.sort((a, b) => getCardStrength(a[0]) - getCardStrength(b[0]));
-
     if (aiParams.aggressiveness > 0.7) {
         selectedMove = playableMoves[playableMoves.length - 1];
         const specialMove = playableMoves.find(m => checkEightCut(m) || checkRevolution(m));
@@ -1189,8 +1188,8 @@ function aiTurn() {
         selectedMove = playableMoves[idx];
     }
 
-    // セリフ -> 待機 -> カード出す
-    gameState.isProcessing = true; // ロック開始
+    // ★重要：セリフ -> 待機 -> カード出す
+    gameState.isProcessing = true; 
     setTimeout(() => {
         let situation = 'play';
         if (checkRevolution(selectedMove)) situation = 'revolution';
@@ -1209,13 +1208,13 @@ function aiTurn() {
 
         showDialogue(aiPlayer.name, getRandomDialogue(charData, situation, aiPlayer), aiPlayer.character, situation);
         
-        // セリフを読ませる時間（3秒）待ってから実行
+        // ★修正ポイント：セリフが出てからカードを出すまでの時間を短縮 (1.5秒)
         setTimeout(() => {
-            gameState.isProcessing = false; // ロック解除
+            gameState.isProcessing = false; 
             executePlay(aiPlayer, selectedMove, selectedMove);
-        }, 1800); 
+        }, 1500); 
 
-    }, 800);
+    }, 800); 
 }
 
 function getPlayableMoves(hand) {
