@@ -206,14 +206,26 @@ button:active { transform: translateY(-2px); }
     background-size: 100% 100%; 
     background-repeat: no-repeat;
     display: inline-block;
-    margin: 5px;
+    
+    /* ★修正: カードを重ねる設定 */
+    margin-right: -40px; /* 隣のカードを上に被せる */
+    
     position: relative;
     box-shadow: 0 5px 15px rgba(0,0,0,0.15);
     transition: all 0.3s ease;
     cursor: pointer;
     border: 1px solid rgba(0,0,0,0.1);
+    
+    /* ★追加: 勝手に縮まないようにする（重要！） */
+    flex-shrink: 0; 
 }
 
+/* 最後のカードだけ余白を戻す */
+.card:last-child {
+    margin-right: 20px; 
+}
+
+/* （ホバー時の動きなどはそのまま） */
 .card:hover {
     transform: translateY(-20px) scale(1.1);
     z-index: 100;
@@ -224,6 +236,7 @@ button:active { transform: translateY(-2px); }
     transform: translateY(-30px);
     border: 3px solid var(--accent-color);
     box-shadow: 0 0 20px rgba(255, 107, 107, 0.6);
+    z-index: 50; /* 選んだカードを手前に */
 }
 
 #player-hand {
@@ -233,12 +246,18 @@ button:active { transform: translateY(-2px); }
     background: rgba(255, 255, 255, 0.5);
     border-radius: 30px;
     display: flex;
-    justify-content: center;
+    /* ★修正: 真ん中寄せをやめて、左から並べる（スクロール用） */
+    justify-content: flex-start; 
     align-items: center;
-    overflow-x: auto;
-    overflow-y: visible;
+    overflow-x: auto; /* 横スクロール許可 */
+    overflow-y: hidden;
     border: 2px solid white;
-    gap: -40px; 
+    /* ★修正: gapのマイナス指定は効かないので削除 */
+    /* gap: -40px; */ 
+    
+    /* ★追加: スクロールバーを少しオシャレに */
+    scrollbar-width: thin;
+    white-space: nowrap; /* 改行禁止 */
 }
 
 /* =========================================
@@ -433,8 +452,21 @@ button:active { transform: translateY(-2px); }
 @media (max-width: 768px) {
     #game-container { padding: 20px; width: 100%; border-radius: 15px; }
     h1 { font-size: 2em; }
-    .card { width: 70px; height: 105px; }
-    #player-hand { height: 160px; padding: 10px; gap: -10px; }
+    
+    /* スマホでのカードサイズ調整 */
+    .card { 
+        width: 80px;  /* 少し大きくしたよ */
+        height: 120px; 
+        margin-right: -35px; /* 重なり具合調整 */
+    }
+    
+    #player-hand { 
+        height: 180px; 
+        padding: 10px 20px; 
+        /* スマホでもスクロールしやすく */
+        justify-content: flex-start; 
+    }
+    
     #dialogue { width: 90%; font-size: 1rem; padding: 0; bottom: 100px; }
     .character-details { flex-direction: column; text-align: center; }
     .modal-content, .character-modal-content { width: 95%; padding: 20px; max-height: 80vh; }
