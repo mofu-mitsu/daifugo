@@ -1461,33 +1461,35 @@ if (jumpBtn) {
         e.preventDefault();
         e.stopPropagation();
         
-        // ★内側の箱をスクロールさせる
-        const modalContent = document.querySelector('.character-modal-content');
-        if (modalContent) {
-            modalContent.scrollTo({
-                top: modalContent.scrollHeight,
+        // ★修正: 今開いているモーダルの中身を探してスクロールさせる
+        // キャラクタ選択画面が開いている場合
+        const charContent = document.querySelector('.character-modal-content');
+        
+        if (charContent && charContent.offsetParent !== null) {
+            charContent.scrollTo({
+                top: charContent.scrollHeight,
                 behavior: 'smooth'
             });
         }
     };
 }
 
-// モーダルを開く
+// モーダルを開く処理の強化
 const originalOpenCharacterModal = openCharacterModal;
 openCharacterModal = function(isSpectator) {
     originalOpenCharacterModal(isSpectator);
     
-    // ★最強のロック: htmlとbody両方にクラスをつける
+    // ★HTMLとBODY両方にクラスをつけてスクロールを完全に封印
     document.documentElement.classList.add('modal-open');
     document.body.classList.add('modal-open');
     
-    // 矢印を表示
+    // 矢印を表示（flexにして中央寄せを有効化）
     if (jumpBtn) {
         jumpBtn.style.setProperty('display', 'flex', 'important');
     }
 };
 
-// モーダルを閉じる
+// モーダルを閉じる処理の強化
 const originalCloseCharacterModalFunc = closeCharacterModalFunc;
 closeCharacterModalFunc = function() {
     originalCloseCharacterModalFunc();
