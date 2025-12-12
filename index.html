@@ -4,18 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>とりの丘トリズ大富豪</title>
-  <base href="/daifugo/">
+  
+  <!-- 🚨削除: これが404の元凶だったから消すよ！ -->
+  <!-- <base href="/daifugo/"> -->
 
   <!-- 基本メタ -->
   <meta name="description" content="みりんてゃとクラスメイト達が賑やかに戦う、とりの丘学園の大富豪ゲーム！キャラボイス付き・都落ち・献上・観戦モード搭載。">
   <meta name="theme-color" content="#ffb6d5">
 
-  <!-- Icons（root直置き対応） -->
-  <link rel="icon" href="/favicon.ico">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32">
+  <!-- Icons（先頭の / を取って相対パスにするのがおすすめ） -->
+  <link rel="icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="favicon-32.png" sizes="32x32">
 
-  <!-- OGP（本番URLを daifugo-mofu.vercel.app に変更） -->
+  <!-- OGP（URLは合ってるから、画像がルートにあるか確認してね！） -->
   <meta property="og:title" content="とりの丘トリズ大富豪">
   <meta property="og:description" content="みりんてゃ達と対戦する賑やか大富豪！都落ち・献上・観戦モード搭載。">
   <meta property="og:image" content="https://daifugo-mofu.vercel.app/ogp.png">
@@ -28,8 +30,8 @@
   <meta property="twitter:description" content="みりんてゃと対戦して学園のトップを目指す大富豪！観戦モードあり。">
   <meta property="twitter:image" content="https://daifugo-mofu.vercel.app/ogp.png">
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="/style.css">
+  <!-- CSS（先頭の / を削除） -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="game-container">
