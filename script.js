@@ -656,95 +656,86 @@ function checkTriangleEvents() {
     return false;
 }
 
-/// ==========================================
-// ★修正: カード交換（通知時間をしっかり確保する版）
+// ==========================================
+// ★修正: カード交換（通知を絶対に消させない版）
 // ==========================================
 function performCardExchange() {
     gameState.isTalking = true;
     const playersByRank = {};
     
-    // 前回の順位をもとにプレイヤーを特定
+    // 順位情報の取得
     gameState.players.forEach(p => {
         const r = gameState.prevRanks[p.id];
         if (r !== undefined) playersByRank[r] = p;
     });
 
-    let delay = 0; // タイムライン管理用
+    let timeline = 0; // 時間管理用
 
-    // 交換処理を行う内部関数
+    // 交換処理関数
     const processExchange = (winnerRank, loserRank, count) => {
         const winner = playersByRank[winnerRank];
         const loser = playersByRank[loserRank];
-        
         if (!winner || !loser) return;
 
-        // 手札を強さ順に整列（右端が最強）
+        // --- 手札整理とカード選択 ---
         sortHand(winner.hand);
         sortHand(loser.hand);
 
-        // --- カードを選ぶ ---
-        // 勝者が出す（弱い方からcount枚）
+        // 勝者が出す（弱い方から）
         const giveToLoser = winner.hand.slice(0, count);
-        // 敗者が出す（強い方からcount枚）
+        // 敗者が出す（強い方から）
         const giveToWinner = loser.hand.slice(loser.hand.length - count);
 
         // --- 交換実行 ---
         exchangeCards(winner, loser, giveToLoser, giveToWinner);
         
+        // 交換後の再整理
         sortHand(winner.hand);
         sortHand(loser.hand);
 
-        // --- ★ここが修正点！通知を出したら時間を確保する ---
-        let actionOccurred = false;
-
-        // あなたが勝者の場合（もらう通知）
+        // --- ★修正: 通知ロジック ---
+        // ここではまだ通知を出さず、後でまとめて出す（画面更新で消されないように）
         if (winner.isHuman) {
             const cardNames = giveToWinner.map(c => getCardNameJP(c)).join('」と「');
             setTimeout(() => {
                 showNotification(`${loser.name}から「${cardNames}」を献上されました！`);
-            }, delay + 500);
-            delay += 4000; // ★読む時間を4秒確保！
-            actionOccurred = true;
-        } 
-        // あなたが敗者の場合（取られる通知）
-        else if (loser.isHuman) {
+            }, timeline + 1000);
+            timeline += 4000; // 読む時間を確保
+        } else if (loser.isHuman) {
             const cardNames = giveToWinner.map(c => getCardNameJP(c)).join('」と「');
             setTimeout(() => {
                 showNotification(`${winner.name}に「${cardNames}」を没収されました…`);
-            }, delay + 500);
-            delay += 4000; // ★読む時間を4秒確保！
-            actionOccurred = true;
+            }, timeline + 1000);
+            timeline += 4000; // 読む時間を確保
         }
 
-        // --- キャラクターのセリフ再生 ---
-        // AIのセリフも被らないように順番に流す
+        // --- セリフ再生 ---
         if (!winner.isHuman) {
             setTimeout(() => {
                 const char = CHARACTERS[winner.character];
                 showDialogue(winner.name, getRandomDialogue(char, 'tributeReceive', winner), winner.character, 'win');
-            }, delay);
-            delay += 3000; // セリフ時間
+            }, timeline);
+            timeline += 3000;
         }
-
         if (!loser.isHuman) {
             setTimeout(() => {
                 const char = CHARACTERS[loser.character];
                 showDialogue(loser.name, getRandomDialogue(char, 'tributeGive', loser), loser.character, 'lose');
-            }, delay);
-            delay += 3000; // セリフ時間
+            }, timeline);
+            timeline += 3000;
         }
     };
 
-    // 大富豪(0位) <-> 大貧民(3位)
-    processExchange(0, 3, 2);
-    
-    // 富豪(1位) <-> 貧民(2位)
-    processExchange(1, 2, 1);
-    
-    // 画面更新
+    // --- 交換処理の実行 ---
+    // 先に画面を更新して、手札が変わった状態にする
     updateGameDisplay();
 
-    // 全ての通知・セリフが終わった後にシステム通知を出す
+    // 大富豪(0) <-> 大貧民(3)
+    processExchange(0, 3, 2);
+    // 富豪(1) <-> 貧民(2)
+    processExchange(1, 2, 1);
+
+    // --- 終了通知 ---
     setTimeout(() => {
         showNotification("都落ち/カード交換が行われました");
         
@@ -754,10 +745,10 @@ function performCardExchange() {
              showNotification(`第${gameState.round}回戦 スタート！`);
         }, 2500);
         
-    }, delay + 1000);
+    }, timeline + 1000);
 }
 
-// ★追加: カード名を日本語にする便利関数（なければ追加してね）
+// ★追加: カード名を日本語にする関数（必須！）
 function getCardNameJP(card) {
     if (card === JOKER) return "Joker";
     if (card === RED_JOKER) return "Joker";
