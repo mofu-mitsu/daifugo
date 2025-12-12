@@ -339,51 +339,93 @@ html.modal-open, body.modal-open {
 .dialogue-text { font-size: 1.1rem; font-weight: bold; color: #333; }
 
 /* =========================================
-   ★スマホ対応（徹底修正！）
-   ========================================= */
-/* =========================================
-   ★修正2: スマホ対応（黒い空白を消す！）
+   ★スマホ対応（徹底修正・完全版！）
+   これまでのスマホ設定を全部これで上書きして！
    ========================================= */
 @media (max-width: 768px) {
-    /* モーダルの外枠：余白をゼロにする */
+    /* === ①消えてしまった大事なレイアウト設定を復活 === */
+    #game-container { 
+        padding: 20px;       /* 狭い画面用に余白を減らす */
+        width: 100%;         /* 横幅いっぱい使う */
+        border-radius: 0;    /* 角丸をなくして画面にフィットさせる */
+        border: none;        /*枠線も消してスッキリ */
+        min-height: 100vh;   /* 画面の高さいっぱいに */
+        margin: 0;
+    }
+    h1 { font-size: 2em; margin-bottom: 20px; }
+    
+    /* カードや手札のサイズ調整も復活 */
+    .card { width: 80px; height: 120px; margin-right: -35px; }
+    #player-hand { height: 180px; padding: 10px 20px; justify-content: flex-start; }
+    
+    /* セリフ位置調整 */
+    #dialogue { width: 95%; font-size: 1rem; padding: 0; bottom: 80px; }
+    
+    /* レイアウト崩れ防止 */
+    .character-details { flex-direction: column; text-align: center; }
+    .result-row { flex-direction: column; text-align: center; padding: 10px; }
+    .result-name { padding: 5px 0; font-size: 1.1rem; }
+    .result-title { margin-top: 5px; color: #6e8efb; }
+
+    /* === ②モーダルの修正（スクロールできるようにする） === */
     .modal {
         padding: 0 !important;
         align-items: flex-start !important;
     }
 
-    /* 白い中身：画面いっぱいに広げる */
     .modal-content, .character-modal-content {
         width: 100% !important;
-        min-height: 100dvh !important; /* 最低でも画面いっぱい確保 */
-        height: auto !important;       /* 中身が多ければ伸びるように */
+        
+        /* ★ここ重要！「高さは画面サイズで固定」にする */
+        height: 100dvh !important; 
+        max-height: 100dvh !important;
         
         margin: 0 !important;
-        border-radius: 0 !important;   /* 角丸をなくして四角く */
-        
+        border-radius: 0 !important;
         top: 0 !important;
         left: 0 !important;
         
-        /* 上は音楽ボタンなどを避けるため少し空ける */
+        /* 上はボタン回避、下は決定ボタンのために空ける */
         padding-top: 80px !important;
-        /* 下は決定ボタンが見えるように確保 */
-        padding-bottom: 100px !important;
+        padding-bottom: 150px !important; 
+        
+        /* ★これで「画面サイズより長い部分はスクロール」になる！ */
+        overflow-y: auto !important; 
+        -webkit-overflow-scrolling: touch; /* iPhoneで滑らかに動くおまじない */
     }
     
-    /* グリッドを強制2列に */
+    /* 閉じるボタン位置（左上に固定） */
+    .close {
+        position: fixed !important;
+        top: 15px !important;
+        left: 15px !important;
+        z-index: 3001 !important;
+        background: rgba(255,255,255,0.8);
+        width: 44px; height: 44px;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 44px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* グリッド調整 */
     .character-section-grid {
         grid-template-columns: repeat(2, 1fr); 
         gap: 10px;
     }
     
-    /* 矢印ボタン（念のためスマホでも位置を再指定） */
+    /* === ③矢印ボタン（右上に配置） === */
     #modal-jump-btn { 
-        top: 80px !important;
-        right: 20px !important;
+        position: fixed !important;
+        top: 80px !important;    /* 音楽ボタンの下 */
+        right: 20px !important;  /* 右端 */
+        z-index: 2147483647 !important;
+        
+        /* PC用の設定をリセット */
         bottom: auto !important;
         left: auto !important;
+        
+        width: 50px !important;
+        height: 50px !important;
     }
-    
-    .result-row { flex-direction: column; text-align: center; padding: 10px; }
-    .result-name { padding: 5px 0; font-size: 1.1rem; }
-    .result-title { margin-top: 5px; color: #6e8efb; }
 }
