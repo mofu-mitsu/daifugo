@@ -27,18 +27,15 @@ const TRIANGLE_EVENTS = [
             "start": {
                 "migiwa": [
                     "ちょ、二人してウチの相手すんの！？水兵部三つ巴バトルじゃな！！",
-                    "けついもりょうごも本気顔しとるけど…ウチが一番に上がるけぇ覚悟しとき！！",
-                    "水兵部の誇り…今日はウチが守ったるけぇな！！"
+                    "けついもりょうごも本気顔しとるけど…ウチが一番に上がるけぇ覚悟しとき！！"
                 ],
                 "ketsui": [
                     "ほいほい…水兵部三人揃うとかエモいのぉ。船長として負けられんわ。",
-                    "みぎわもりょうごも、ええ顔しとるの。ほうじゃけぇワシも燃えるんよ。",
-                    "水兵部の威信かけて…全力でやらせてもらうで。"
+                    "みぎわもりょうごも、ええ顔しとるの。ほうじゃけぇワシも燃えるんよ。"
                 ],
                 "ryogo": [
                     "水兵部三人か…データ上、この組み合わせは接戦になる確率が高いな。",
-                    "けついの直感とみぎわの勢い…両方同時は情報量多いけど、勝ち筋は見えてる。",
-                    "水兵部として…負けられない戦いだ。"
+                    "けついの直感とみぎわの勢い…両方同時は情報量多いけど、勝ち筋は見えてる。"
                 ]
             },
             "think": {
@@ -100,8 +97,8 @@ let gameState = {
     round: 1,
     prevRanks: {},
     isSpectator: false,
-    isProcessing: false, // ロックフラグ
-    isGameEnded: false   // ゲーム終了フラグ（★追加）
+    isProcessing: false,
+    isGameEnded: false
 };
 
 // ==========================================
@@ -142,6 +139,7 @@ const titleButton = document.getElementById('title-button');
 
 const selectCharactersBtn = document.getElementById('select-characters-btn');
 const spectatorModeBtn = document.getElementById('spectator-mode-btn');
+const jumpBtn = document.getElementById('modal-jump-btn');
 
 // ==========================================
 // 初期化
@@ -175,7 +173,6 @@ function loadCharacterDefinitions() {
     }
 }
 
-// 画像プリロード
 function preloadCharacterImages() {
     if (document.getElementById('preload-container')) return;
     const preloadContainer = document.createElement('div');
@@ -205,65 +202,71 @@ function preloadCharacterImages() {
 }
 
 // ==========================================
-// キャラ選択
+// キャラ選択 (ここを完全に修正！)
 // ==========================================
 let tempSelectedCharacters = [];
 let isSelectingForSpectator = false;
-let scrollPosition = 0; // スクロール位置保存用
 
-// ==========================================
-// ★修正: 決定ボタンへワープ＆スクロール制御
-// ==========================================
-const jumpBtn = document.getElementById('modal-jump-btn');
-
+// 矢印ボタンクリックイベント（スクロール機能）
 if (jumpBtn) {
     jumpBtn.onclick = (e) => {
         e.preventDefault();
         e.stopPropagation();
         
-        // ★修正: 確実にキャラ選択の箱を取得してスクロールさせる
+        // 内側のコンテンツを取得してスクロール
         const modalContent = document.querySelector('.character-modal-content');
         if (modalContent) {
             modalContent.scrollTo({
-                top: modalContent.scrollHeight, // 一番下まで
+                top: modalContent.scrollHeight,
                 behavior: 'smooth'
             });
         }
     };
 }
 
-// モーダルを開く処理の強化
-const originalOpenCharacterModal = openCharacterModal;
-openCharacterModal = function(isSpectator) {
-    // 元の処理を実行
-    originalOpenCharacterModal(isSpectator);
-    
-    // ロック（スマホ対策）
+// モーダルを開く関数（定義＆強化）
+function openCharacterModal(isSpectator) {
+    isSelectingForSpectator = isSpectator;
+    tempSelectedCharacters = [...gameState.selectedCharacters];
+
+    const title = characterModal.querySelector('h2');
+    if (title) title.textContent = isSpectator ? "観戦する4人を選択（最初は手前）" : "対戦相手を3人選択";
+
+    characterModal.style.display = 'block';
+    renderCharacterGrid();
+    updateModalSelectionDisplay();
+
+    // ★スマホ用ロック＆矢印ボタン表示
     document.documentElement.classList.add('modal-open');
     document.body.classList.add('modal-open');
     
-    // ★修正: 観戦モードでも通常モードでも、確実に矢印を出す！
     if (jumpBtn) {
-        // display: flex にして強制表示（importantをつける勢いで）
         jumpBtn.style.display = 'flex';
     }
-};
 
-// モーダルを閉じる処理
-const originalCloseCharacterModalFunc = closeCharacterModalFunc;
-closeCharacterModalFunc = function() {
-    originalCloseCharacterModalFunc();
+    const firstId = Object.keys(CHARACTERS)[0];
+    if (firstId) showCharacterDetails(CHARACTERS[firstId]);
+}
+
+// モーダルを閉じる関数（定義＆強化）
+function closeCharacterModalFunc() {
+    characterModal.style.display = 'none';
     
+    // ロック解除＆矢印非表示
     document.documentElement.classList.remove('modal-open');
     document.body.classList.remove('modal-open');
     
-    // 矢印を隠す
     if (jumpBtn) {
         jumpBtn.style.display = 'none';
     }
-};
+}
 
+// 閉じるボタンのイベント設定
 closeCharacterModal.onclick = closeCharacterModalFunc;
+window.onclick = (e) => { 
+    if (e.target === rulesModal) rulesModal.style.display = 'none';
+    // characterModalの背景クリックは誤作動防止のため無効化推奨だが、必要ならここに追加
+};
 
 function renderCharacterGrid() {
     characterGrid.innerHTML = '';
@@ -293,7 +296,6 @@ function renderCharacterGrid() {
 
             card.innerHTML = `${imgTag}${fallbackAvatar}<div style="font-weight:bold;">${charData.name}</div><div style="font-size:0.8em;color:#666;">${charData.MBTI}</div>`;
 
-            // クリックで選択＆プロフ表示
             card.onclick = () => {
                 toggleCharacterSelection(id, card);
                 showCharacterDetails(charData);
@@ -368,10 +370,9 @@ function showCharacterDetails(char) {
     characterPortrait.style.display = 'inline-block';
 }
 
-// 決定ボタンクリック処理
 confirmSelectionBtn.onclick = () => {
     gameState.selectedCharacters = [...tempSelectedCharacters];
-    gameState.isSpectator = isSelectingForSpectator; // ★修正: ここでモードを確実に保存！
+    gameState.isSpectator = isSelectingForSpectator;
 
     const names = gameState.selectedCharacters.map(id => CHARACTERS[id].name).join('、');
     const modeName = gameState.isSpectator ? "【観戦モード】" : "【通常モード】";
@@ -406,7 +407,7 @@ function startGame() {
     gameState.round = 1;
     gameState.prevRanks = {};
     gameState.isProcessing = false;
-    gameState.isGameEnded = false; // ★追加: 終了フラグ初期化
+    gameState.isGameEnded = false;
 
     setupPlayers();
     preloadCharacterImages();
@@ -462,7 +463,7 @@ function startRound() {
     gameState.lastPlayIndex = -1;
     gameState.isProcessing = false;
     gameState.isTalking = false;
-    gameState.isGameEnded = false; // リセット
+    gameState.isGameEnded = false;
 
     gameState.players.forEach(p => {
         p.hand = [];
@@ -690,7 +691,6 @@ function checkFieldClear() {
         gameState.lastPlayIndex = -1;
 
         const currentPlayer = gameState.players[gameState.currentPlayerIndex];
-        // ★修正: 観戦モードでもキャラ名を表示
         let msg = `${currentPlayer.name}が親番です`;
         if (currentPlayer.isHuman) {
             msg = "（あなた）が親番です";
@@ -963,13 +963,12 @@ function continueExecute(player, cards) {
 
 function checkWin(player) {
     if (player.hand.length === 0) {
-        if (player.rank !== null) return true; // すでに上がり
+        if (player.rank !== null) return true;
 
         const rankIndex = gameState.finishedPlayers.length;
         player.rank = RANKINGS[rankIndex];
         gameState.finishedPlayers.push(gameState.players.indexOf(player));
 
-        // 都落ち判定
         if (gameState.round > 1 && rankIndex === 0) {
             const prevKing = gameState.players.find(p => gameState.prevRanks[p.id] === 0);
             if (prevKing && prevKing !== player && !gameState.finishedPlayers.includes(gameState.players.indexOf(prevKing))) {
@@ -995,9 +994,8 @@ function checkWin(player) {
             showDialogue(player.name, "上がりました！", "player", 'win');
         }
 
-        // ★修正: 3人上がったら終了（残りの1人は負け確定）
         if (gameState.finishedPlayers.length >= gameState.players.length - 1) {
-            gameState.isGameEnded = true; // 終了フラグ
+            gameState.isGameEnded = true;
             setTimeout(processGameEnd, 3000);
             return true;
         }
@@ -1047,22 +1045,20 @@ titleButton.onclick = () => {
 };
 
 function advanceTurn() {
-    if (gameState.isGameEnded) return; // 終了していたら何もしない
+    if (gameState.isGameEnded) return;
 
     let nextIndex = (gameState.currentPlayerIndex + 1) % gameState.players.length;
-    // 上がっているプレイヤーはスキップ
     let count = 0;
     while (gameState.finishedPlayers.includes(nextIndex)) {
         nextIndex = (nextIndex + 1) % gameState.players.length;
         count++;
-        if (count > 10) break; // 無限ループ防止
+        if (count > 10) break;
     }
 
     gameState.currentPlayerIndex = nextIndex;
     updateGameDisplay();
 }
 
-// AIターン処理（修正版：フリーズ対策強化）
 function aiTurn() {
     if (gameState.isProcessing || gameState.isTalking || gameState.isGameEnded) return;
 
@@ -1086,7 +1082,6 @@ function aiTurn() {
 
     const playableMoves = getPlayableMoves(aiPlayer.hand);
 
-    // パスの場合（フリーズ防止）
     if (playableMoves.length === 0) {
         gameState.isProcessing = true;
         setTimeout(() => {
@@ -1101,7 +1096,6 @@ function aiTurn() {
         return;
     }
 
-    // AI思考
     let selectedMove = null;
     playableMoves.sort((a, b) => getCardStrength(a[0]) - getCardStrength(b[0]));
     if (aiParams.aggressiveness > 0.7) {
@@ -1115,7 +1109,6 @@ function aiTurn() {
         selectedMove = playableMoves[idx];
     }
 
-    // カードを出す
     gameState.isProcessing = true;
     setTimeout(() => {
         let situation = 'play';
@@ -1148,7 +1141,6 @@ function getPlayableMoves(hand) {
     const fieldQty = gameState.field.length;
     const fieldStrength = fieldQty > 0 ? getCardStrength(gameState.field[0]) : -1;
 
-    // 単体
     if (fieldQty === 0 || fieldQty === 1) {
         hand.forEach(card => {
             if (fieldQty === 0 || getCardStrength(card) > fieldStrength) moves.push([card]);
@@ -1172,7 +1164,6 @@ function getPlayableMoves(hand) {
         cardsBySuit[suit].push(card);
     });
 
-    // ペア
     Object.keys(rankGroups).forEach(rank => {
         const cards = rankGroups[rank];
         if (fieldQty === 0) {
@@ -1192,7 +1183,6 @@ function getPlayableMoves(hand) {
         }
     });
 
-    // 階段
     Object.keys(cardsBySuit).forEach(suit => {
         const cards = cardsBySuit[suit].sort((a, b) => getRankValue(a) - getRankValue(b));
         if (cards.length < 3) return;
