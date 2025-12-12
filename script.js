@@ -1459,7 +1459,7 @@ const jumpBtn = document.getElementById('modal-jump-btn');
 
 if (jumpBtn) {
     jumpBtn.onclick = () => {
-        // ★修正: スマホ・PC問わず、スクロールする箱（character-modal-content）を動かす
+        // ★修正: スマホで全画面化している「.character-modal-content」をスクロールさせる
         const modalContent = document.querySelector('.character-modal-content');
         if (modalContent) {
             modalContent.scrollTo({
@@ -1497,3 +1497,4 @@ closeCharacterModalFunc = function() {
         jumpBtn.style.display = 'none';
     }
 };
+
