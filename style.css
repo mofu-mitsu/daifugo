@@ -326,25 +326,135 @@ button:active { transform: translateY(-2px); }
 .result-title { font-weight: bold; }
 
 /* =========================================
+   ★追加: BGMボタンのデザイン
+   ========================================= */
+.bgm-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10001; /* 最前面に */
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: white;
+    color: #888;
+    border: 2px solid #ddd;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+    padding: 0; /* paddingリセット */
+    margin: 0;
+}
+
+.bgm-btn:hover {
+    transform: scale(1.1);
+    background: #f0f7ff;
+    color: #6e8efb;
+    border-color: #6e8efb;
+}
+
+.bgm-btn.playing {
+    color: #ff6b6b;
+    border-color: #ff6b6b;
+    background: #fff0f0;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+}
+
+/* =========================================
    モーダル共通
    ========================================= */
 .modal {
-    display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%;
-    background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);
+    display: none;
+    position: fixed;
+    z-index: 3000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
 }
+
+/* モーダル基本デザイン（キャラ選択以外も共通） */
 .modal-content, .character-modal-content {
-    background: rgba(255, 255, 255, 0.98); margin: 3% auto; padding: 40px;
-    border-radius: 30px; width: 90%; max-width: 1000px;
-    box-shadow: var(--shadow-strong); position: relative;
-    animation: slideDown 0.4s ease; border: 1px solid white;
-    max-height: 85vh; overflow-y: auto;
+    background: rgba(255, 255, 255, 0.98);
+    margin: 3% auto;
+    padding: 40px;
+    border-radius: 30px;
+    width: 90%;
+    max-width: 1000px;
+    box-shadow: var(--shadow-strong);
+    position: relative;
+    animation: slideDown 0.4s ease;
+    border: 1px solid white;
+    max-height: 85vh;
+    overflow-y: auto;
 }
-@keyframes slideDown { from { opacity: 0; transform: translateY(-50px); } to { opacity: 1; transform: translateY(0); } }
+
+/* モーダル表示アニメ */
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-50px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 閉じるボタン */
 .close {
-    color: #aaa; float: right; font-size: 32px; font-weight: bold; cursor: pointer;
-    transition: color 0.3s; position: absolute; right: 30px; top: 20px;
+    color: #aaa;
+    float: right;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s;
+    position: absolute;
+    right: 30px;
+    top: 20px;
 }
 .close:hover { color: #ff6b6b; }
+
+/* =========================================
+   キャラ選択モーダル専用（スクロール調整）
+   ========================================= */
+
+/* モーダル全体をスクロールさせず、中身だけ操作 */
+.character-modal-content {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 0;
+    overflow: hidden;  /* 全体スクロール禁止 */
+    max-height: 85vh;  /* 元の高さ制限も維持 */
+}
+
+/* キャラ一覧部分だけスクロール */
+#character-grid {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding-bottom: 100px;
+    max-height: 60vh;
+}
+
+/* 決定ボタンエリアを下に固定！ */
+.selected-characters {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(5px);
+    border-top: 2px solid #eee;
+    padding: 15px;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+    z-index: 10;
+    margin-top: auto;
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+}
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
