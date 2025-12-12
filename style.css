@@ -163,7 +163,7 @@ button:active { transform: translateY(-2px); }
 .result-name { font-size: 1.2rem; flex-grow: 1; text-align: left; padding-left: 20px; }
 .result-title { font-weight: bold; }
 
-/* BGMボタン */
+/* BGMボタン（右上） */
 .bgm-btn {
     position: fixed; top: 20px; right: 20px; z-index: 10001;
     width: 50px; height: 50px; border-radius: 50%; background: white; color: #888;
@@ -180,7 +180,7 @@ button:active { transform: translateY(-2px); }
 }
 
 /* =========================================
-   モーダル共通（PC版）
+   モーダル共通（PC版の基本）
    ========================================= */
 .modal {
     display: none; position: fixed; z-index: 3000; left: 0; top: 0;
@@ -189,7 +189,7 @@ button:active { transform: translateY(-2px); }
     justify-content: center; align-items: center;
     overflow: hidden; 
 }
-body.modal-open { overflow: hidden; position: fixed; width: 100%; } 
+body.modal-open { overflow: hidden; position: fixed; width: 100%; height: 100%; } 
 .modal[style*="display: block"] { display: flex !important; }
 
 /* モーダルの箱（PC版） */
@@ -205,16 +205,19 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
 
 @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
-/* 閉じるボタン（PC版） */
+/* 閉じるボタン（共通：左上に配置） */
 .close {
     color: #aaa; font-size: 32px; font-weight: bold; cursor: pointer;
-    transition: color 0.3s; position: absolute; left: 20px; top: 15px; z-index: 20000;
+    transition: color 0.3s; 
+    /* ★左上に変更 */
+    position: absolute; left: 20px; top: 15px; z-index: 20000;
 }
 .close:hover { color: #ff6b6b; }
 
 /* =========================================
    キャラ選択画面
    ========================================= */
+/* タイトル（PC） */
 .character-modal-content > h2 { margin-top: 10px; margin-bottom: 10px; text-align: center; }
 
 /* プロフエリア */
@@ -242,7 +245,7 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
 .selected-characters {
     position: static; 
     background: transparent; border: none; box-shadow: none;
-    padding: 20px 0 100px 0; /* 下に余裕を持たせる */
+    padding: 20px 0 100px 0; 
     margin-top: 10px; text-align: center; border-top: 2px dashed #ddd;
 }
 
@@ -264,20 +267,17 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
     transition: all 0.3s;
 }
 
-/* ★矢印ボタン（Grokのアドバイス通り最強設定） */
+/* ★矢印ボタン（初期配置・PC版左下） */
 #modal-jump-btn {
     position: fixed; 
-    bottom: 30px; 
-    left: 20px; 
-    z-index: 2147483647; /* 最強z-index */
+    bottom: 30px; left: 30px;
+    z-index: 2147483647; 
     width: 60px; height: 60px; border-radius: 50%;
     background: var(--accent-color); color: white; font-size: 1.5rem;
     box-shadow: 0 5px 20px rgba(0,0,0,0.4); border: 3px solid white;
-    cursor: pointer; 
-    display: none; /* 初期は消す */
-    align-items: center; justify-content: center;
+    cursor: pointer; display: none; align-items: center; justify-content: center;
     animation: bounce 2s infinite;
-    pointer-events: auto !important; /* タップ確実に効かせる */
+    pointer-events: auto !important;
 }
 @keyframes bounce {
     0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
@@ -306,7 +306,7 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
 .dialogue-text { font-size: 1.1rem; font-weight: bold; color: #333; }
 
 /* =========================================
-   ★スマホ対応（ここを抜本修正！）
+   ★スマホ対応（余白削除・矢印移動）
    ========================================= */
 @media (max-width: 768px) {
     #game-container { padding: 20px; width: 100%; border-radius: 15px; }
@@ -317,26 +317,28 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
     
     .character-details { flex-direction: column; text-align: center; }
     
-    /* モーダルのコンテナ自体を上詰めにする */
+    /* モーダルのコンテナを「上詰め」にする（余白削除の肝！） */
     .modal {
-        align-items: flex-start; 
-        padding: 0;
+        align-items: flex-start !important; 
+        padding: 0 !important;
     }
 
     /* 白い箱を全画面化（アプリ風） */
     .modal-content, .character-modal-content {
         width: 100% !important; 
-        height: 100% !important; /* 全画面にする */
+        min-height: 100vh !important; /* 強制的に縦いっぱい */
         max-width: none !important;
         max-height: none !important;
         margin: 0 !important;
         border-radius: 0 !important;
+        
+        /* 余白削除 */
         top: 0; left: 0;
         
-        /* 中身がボタンに被らないようにパディング調整 */
-        padding-top: 60px; 
-        padding-bottom: 120px; /* ここ重要：下に余白を作ることでボタンが重なっても中身が見える */
+        /* BGMボタンなどと被らないように上だけ少し開ける */
+        padding-top: 60px !important; 
         
+        /* アニメーションなし */
         animation: none;
     }
     
@@ -346,10 +348,12 @@ body.modal-open { overflow: hidden; position: fixed; width: 100%; }
         gap: 10px;
     }
     
-    /* 矢印ボタン（左下） */
+    /* ★矢印ボタンを右上のBGMボタンの下に配置 */
     #modal-jump-btn { 
-        bottom: 30px !important; 
-        left: 20px !important;
+        bottom: auto !important; /* 下基準を解除 */
+        left: auto !important;   /* 左基準を解除 */
+        top: 80px !important;    /* 上から80px（BGMボタンの下） */
+        right: 20px !important;  /* 右から20px */
     }
     
     .result-row { flex-direction: column; text-align: center; padding: 10px; }
