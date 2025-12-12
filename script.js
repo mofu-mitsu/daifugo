@@ -1442,41 +1442,36 @@ function startBgm() {
 }
 
 // ==========================================
-// ★修正: 矢印ボタン & 背景スクロールロック
+// ★修正: 決定ボタンへワープ＆背景ロック
 // ==========================================
 const jumpBtn = document.getElementById('modal-jump-btn');
 
 if (jumpBtn) {
     jumpBtn.onclick = () => {
-        // ★修正: スクロールバーを持っているのは「character-modal-content」
-        const modalContent = document.querySelector('.character-modal-content');
-        if (modalContent) {
-            modalContent.scrollTo({
-                top: modalContent.scrollHeight,
+        // ★修正: スクロールするのは「#character-grid」
+        const grid = document.getElementById('character-grid');
+        if (grid) {
+            grid.scrollTo({
+                top: grid.scrollHeight,
                 behavior: 'smooth'
             });
         }
     };
 }
 
-// モーダル制御（背景ロック強化）
+// モーダル制御
 const originalOpenCharacterModal = openCharacterModal;
 openCharacterModal = function(isSpectator) {
     originalOpenCharacterModal(isSpectator);
-    
     // 背景固定
     document.body.classList.add('modal-open');
-    
-    // 矢印ボタン表示
     if (jumpBtn) jumpBtn.style.display = 'flex';
 };
 
 const originalCloseCharacterModalFunc = closeCharacterModalFunc;
 closeCharacterModalFunc = function() {
     originalCloseCharacterModalFunc();
-    
     // 背景固定解除
     document.body.classList.remove('modal-open');
-    
     if (jumpBtn) jumpBtn.style.display = 'none';
 };
