@@ -342,90 +342,80 @@ html.modal-open, body.modal-open {
 .dialogue-text { font-size: 1.1rem; font-weight: bold; color: #333; }
 
 /* =========================================
-   ★スマホ対応（タイトル位置＆ゲーム画面 完全修復版）
+   ★スマホ対応（シンプルイズベスト修正版）
    ========================================= */
 @media (max-width: 768px) {
-    /* === ①全体設定 === */
+    /* === ①全体レイアウト（flexをやめてblockに戻す） === */
     html, body {
         height: 100%;
-        overflow-x: hidden; /* 横揺れ防止 */
+        /* overflow: hidden; は削除済み */
     }
     
     #game-container { 
-        /* ★修正: 上をガッツリ140px空ける（BGMボタン回避） */
-        padding-top: 140px !important;
+        /* ★上を130px空ける */
+        padding-top: 130px !important;
         padding-left: 20px !important;
         padding-right: 20px !important;
         padding-bottom: 50px !important;
         
         width: 100%;
-        min-height: 100dvh;
+        min-height: 100dvh; /* 画面の高さいっぱいに伸ばす */
         
         border-radius: 0;
         border: none;
         margin: 0;
         
-        /* 縦並びにする（タイトル画面用） */
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: flex-start !important; 
-        align-items: center !important;
+        /* ★重要：ここを「block」に戻す！これで変な位置ズレが直る */
+        display: block !important; 
+        overflow-y: auto !important; /* スクロール許可 */
     }
 
     h1 { 
-        /* ★修正: 上のマージンを消して、paddingで位置調整する */
-        margin-top: 0 !important; 
+        text-align: center;
+        margin-top: 0 !important;
         margin-bottom: 30px !important;
-        
-        font-size: 1.6em; /* 少し小さくして見切れ防止 */
+        font-size: 1.8em; 
         line-height: 1.2;
-        flex-shrink: 0;
-        position: relative;
-        z-index: 10;
-        width: 100%; /* 横幅いっぱいに */
-        word-wrap: break-word; /* 長い単語での改行 */
     }
     
-    /* === ②ゲーム画面の救出（ここが超重要！） === */
-    /* 親要素の flex設定をここで打ち消して、カードを置けるようにする */
+    /* === ②ゲーム画面の修正（バグの原因を除去！） === */
     #game-screen {
         width: 100% !important;
-        flex-grow: 1;
-        display: block !important; /* flex解除！ */
-        position: relative;
-        margin-top: -20px; /* 少し上に詰める */
+        /* ★ここにあった display: block !important; を削除したよ！！ */
+        /* これでJSの制御（非表示）が効くようになる */
+        
+        margin-top: 0;
     }
 
     #field {
-        /* 場のカードエリア */
-        height: 280px !important; /* スマホ用に少し小さく */
+        height: 280px !important; 
         margin: 10px 0 !important;
     }
 
     #player-hand { 
-        /* 手札エリア：横スクロール復活 */
         height: 160px !important; 
         padding: 10px 10px !important; 
         justify-content: flex-start !important;
         
+        /* 横並び・スクロール設定 */
         display: flex !important;
-        flex-wrap: nowrap !important; /* 折り返し禁止 */
-        overflow-x: auto !important;  /* 横スクロール許可 */
+        flex-direction: row !important; /* 横並び明示 */
+        flex-wrap: nowrap !important;   /* 折り返し禁止 */
+        overflow-x: auto !important;    /* 横スクロール許可 */
         -webkit-overflow-scrolling: touch;
         
         width: 100%;
         background: rgba(255, 255, 255, 0.4);
     }
     
-    /* === ③カードサイズ調整 === */
     .card { 
-        width: 70px !important; /* 少し小さくして並べやすく */
+        width: 70px !important; 
         height: 105px !important; 
-        margin-right: -25px !important; /* 重なり調整 */
-        flex-shrink: 0 !important; /* 潰れないように */
+        margin-right: -25px !important; 
+        flex-shrink: 0 !important; 
     }
 
-    /* === ④モーダル（キャラ選択など） === */
+    /* === ③モーダル（キャラ選択など） === */
     .modal {
         padding: 0 !important;
         align-items: flex-start !important;
@@ -447,7 +437,7 @@ html.modal-open, body.modal-open {
         overflow-y: auto !important;
     }
     
-    /* === ⑤ボタン類 === */
+    /* === ④ボタン類 === */
     .close {
         position: fixed !important;
         top: 20px !important;
