@@ -352,13 +352,16 @@ html.modal-open, body.modal-open {
     }
     
     #game-container { 
-        padding: 20px;
+        /* padding: 20px;  ←元はこれだった */
+        
+        /* ★修正: 上の余白を80pxに増やして、BGMボタンと被らないようにする */
+        padding: 90px 20px 40px 20px !important;
+        
         width: 100%;
         min-height: 100vh;
         border-radius: 0;
         border: none;
         margin: 0;
-        /* overflow-y: auto; ←これも消してOK（自然に任せる） */
     }
 
     /* === 以下は変更なし（そのまま残して！） === */
