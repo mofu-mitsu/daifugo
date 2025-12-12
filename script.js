@@ -1463,3 +1463,34 @@ function startBgm() {
         });
     }
 }
+
+// ==========================================
+// ★追加: 決定ボタンへワープ
+// ==========================================
+const jumpBtn = document.getElementById('modal-jump-btn');
+
+if (jumpBtn) {
+    jumpBtn.onclick = () => {
+        const modalContent = document.querySelector('.character-modal-content');
+        if (modalContent) {
+            modalContent.scrollTo({
+                top: modalContent.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    };
+}
+
+// モーダルを開く時・閉じる時にボタンの表示を切り替え
+// (既存の openCharacterModal 関数の中に追加してね)
+const originalOpenCharacterModal = openCharacterModal;
+openCharacterModal = function(isSpectator) {
+    originalOpenCharacterModal(isSpectator);
+    if (jumpBtn) jumpBtn.style.display = 'flex';
+};
+
+const originalCloseCharacterModalFunc = closeCharacterModalFunc;
+closeCharacterModalFunc = function() {
+    originalCloseCharacterModalFunc();
+    if (jumpBtn) jumpBtn.style.display = 'none';
+};
