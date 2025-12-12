@@ -961,21 +961,40 @@ function continueExecute(player, cards) {
     }, 1200);
 }
 
+// ...（前略：aiTurn関数などの続き）...
+
 function checkWin(player) {
+    // 手札がなくなった時の処理
     if (player.hand.length === 0) {
-        if (player.rank !== null) return true;
+        if (player.rank !== null) return true; // すでに上がり済みなら無視
 
         const rankIndex = gameState.finishedPlayers.length;
+        
+        // ★暫定順位をつける（あとで都落ちが起きたら変動する）
         player.rank = RANKINGS[rankIndex];
         gameState.finishedPlayers.push(gameState.players.indexOf(player));
 
+        // ===============================================
+        // ★修正: 都落ち判定ロジック
+        // ===============================================
         if (gameState.round > 1 && rankIndex === 0) {
+            // 今回1位が決まった瞬間、前の大富豪(rank=0)を探す
             const prevKing = gameState.players.find(p => gameState.prevRanks[p.id] === 0);
+            
+            // 前の大富豪がいて、今回の1位ではなく、まだ上がっていない場合
             if (prevKing && prevKing !== player && !gameState.finishedPlayers.includes(gameState.players.indexOf(prevKing))) {
+                
                 showNotification("都落ち発生！！");
-                prevKing.rank = RANKINGS[3];
+                
+                // ★重要: フラグを立てて、強制的にfinishedPlayersに追加する
+                prevKing.isDropped = true; 
+                prevKing.rank = RANKINGS[3]; // 表示上は大貧民にしておく
+                prevKing.hand = []; // 手札没収
+                
+                // 1位の次にリストに追加（この時点では2番目だが、最後に並べ替える）
                 gameState.finishedPlayers.push(gameState.players.indexOf(prevKing));
-                prevKing.hand = [];
+
+                // セリフ再生
                 const kChar = CHARACTERS[prevKing.character];
                 setTimeout(() => {
                     showDialogue(prevKing.name, getRandomDialogue(kChar, 'drop', prevKing), prevKing.character, 'lose');
@@ -983,6 +1002,7 @@ function checkWin(player) {
             }
         }
 
+        // 上がりセリフ処理
         const char = CHARACTERS[player.character];
         let situation = rankIndex === 0 ? 'rank1' : 'rank2';
         if (char && char.id === 'rei' && Math.random() < 0.2) situation = 'ketchup';
@@ -994,6 +1014,8 @@ function checkWin(player) {
             showDialogue(player.name, "上がりました！", "player", 'win');
         }
 
+        // ★ゲーム終了判定
+        // プレイヤー人数-1人が上がったら（または都落ちで埋まったら）終了
         if (gameState.finishedPlayers.length >= gameState.players.length - 1) {
             gameState.isGameEnded = true;
             setTimeout(processGameEnd, 3000);
@@ -1004,25 +1026,63 @@ function checkWin(player) {
 }
 
 function processGameEnd() {
+    // まだ上がっていない最後の1人（敗者）を探して追加
     const loserIndex = gameState.players.findIndex((p, idx) => !gameState.finishedPlayers.includes(idx));
     if (loserIndex !== -1) {
         const loser = gameState.players[loserIndex];
         if (loser.rank === null) {
             loser.rank = RANKINGS[3];
             gameState.finishedPlayers.push(loserIndex);
+            
+            // 敗北セリフ
             const char = CHARACTERS[loser.character];
             if (char) showDialogue(loser.name, getRandomDialogue(char, 'lose', loser), loser.character, 'lose');
             else showDialogue(loser.name, "負けました...", "player", 'lose');
         }
     }
 
-    gameState.players.forEach((p, idx) => {
-        const rank = gameState.finishedPlayers.indexOf(idx);
-        gameState.prevRanks[p.id] = rank;
+    // ===============================================
+    // ★修正: 都落ちプレイヤーを強制的に最下位に移動させる
+    // ===============================================
+    // finishedPlayers配列の中に isDropped=true の人がいたら、配列の最後に移動させる
+    // これをしないと「2番目に抜けたから富豪」扱いになってしまう
+    
+    // インデックス(数値)の配列を、プレイヤーオブジェクトの配列に変換して操作
+    let sortedPlayers = gameState.finishedPlayers.map(idx => gameState.players[idx]);
+    
+    // 都落ちした人を抽出
+    const droppedPlayer = sortedPlayers.find(p => p.isDropped);
+    
+    if (droppedPlayer) {
+        // 都落ち以外の人リスト
+        const others = sortedPlayers.filter(p => !p.isDropped);
+        // [1位, 2位, 3位, ... , 都落ち] の順に再構成
+        sortedPlayers = [...others, droppedPlayer];
+        
+        // フラグはリセットしておく（次の試合のため）
+        droppedPlayer.isDropped = false; 
+    }
+
+    // finishedPlayers を正しい順序のインデックス配列に戻す
+    gameState.finishedPlayers = sortedPlayers.map(p => gameState.players.indexOf(p));
+
+    // ===============================================
+    // ★修正: 正しい順序でランク(0〜3)を保存する
+    // ===============================================
+    gameState.finishedPlayers.forEach((playerIdx, rankOrder) => {
+        const p = gameState.players[playerIdx];
+        
+        // ランク文字列を更新 (大富豪, 富豪, 貧民, 大貧民)
+        p.rank = RANKINGS[rankOrder];
+        
+        // 次の試合のためにランク(数値)を保存
+        gameState.prevRanks[p.id] = rankOrder;
     });
 
     setTimeout(showResultModal, 2500);
 }
+
+// ...（以降、showResultModalなどは変更なし）...
 
 function showResultModal() {
     resultList.innerHTML = '';
