@@ -1019,17 +1019,18 @@ function performCardExchange() {
         
         setTimeout(() => {
              gameState.isTalking = false;
-             
-             // ★ここ追加！ロック解除してゲーム開始！
              gameState.isExchanging = false; 
              
-             playStartVoices(); 
-             showNotification(`第${gameState.round}回戦 スタート！`);
+             // ★ここ修正！ 
+             // ただ声を出すだけじゃなく、イベント抽選を行ってから開始する！
+             if (!checkTriangleEvents()) {
+                 playStartVoices(); 
+             }
              
-             // ★重要！ここで改めて画面更新を呼ぶことで、AIやプレイヤーのターンが始まる
+             showNotification(`第${gameState.round}回戦 スタート！`);
              updateGameDisplay(); 
 
-        }, 2500); // 通知を読んでから開始
+        }, 2500); 
         
     }, timeline + 1000);
 }
