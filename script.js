@@ -18,7 +18,7 @@ const CLASS_2_2 = [
     "makishi", "shige", "hakomo", "shizuka", "mirin", "yuzu", "shinon", "hikari", "kozue", "yamato"
 ];
 
-// トリプルイベント定義
+// トリプルイベント定義（省略せず記述）
 const TRIANGLE_EVENTS = [
   {
     "id": "migiwa_ketsui_ryogo",
@@ -209,7 +209,7 @@ const TRIANGLE_EVENTS = [
       }
     }
   },
-  {
+ {
     "id": "rei_akira_tomoki",
     "characters": ["rei", "akira", "tomoki"],
     "lines": {
@@ -345,7 +345,6 @@ const TRIANGLE_EVENTS = [
           "リーダーとして…ここで崩れるわけにはいかない。",
         ]
       },
-
       "win": {
         "rei": [
           "学年1位の面目を保てたかな？あきらくんもともきくんもお疲れ様✨",
@@ -362,7 +361,6 @@ const TRIANGLE_EVENTS = [
           "満足はしないが、悪くない。"
         ]
       },
-
       "lose": {
         "rei": [
           "あれ…負けちゃった… あきらくんかともきくんが勝ったんだね…悔しいな",
@@ -491,7 +489,6 @@ const TRIANGLE_EVENTS = [
   }
 ];
 
-
 let gameState = {
     players: [],
     currentPlayerIndex: 0,
@@ -508,8 +505,14 @@ let gameState = {
     prevRanks: {},
     isSpectator: false,
     isProcessing: false,
-    isGameEnded: false
+    isGameEnded: false,
+    isSkipping: false,
+    isExchanging: false 
 };
+
+// キャラ選択用変数
+let tempSelectedCharacters = [];
+let isSelectingForSpectator = false;
 
 // ==========================================
 // DOM要素
@@ -551,6 +554,7 @@ const titleButton = document.getElementById('title-button');
 const selectCharactersBtn = document.getElementById('select-characters-btn');
 const spectatorModeBtn = document.getElementById('spectator-mode-btn');
 const jumpBtn = document.getElementById('modal-jump-btn');
+const skipGameBtn = document.getElementById('skip-game-btn');
 
 // ==========================================
 // 初期化
@@ -559,7 +563,18 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCharacterDefinitions();
     selectCharactersBtn.addEventListener('click', () => openCharacterModal(false));
     spectatorModeBtn.addEventListener('click', () => openCharacterModal(true));
-    createDialogueElement();
+    createDialogueElement(); // ★ここがエラーの原因でした！関数は下に定義してあるよ！
+
+    if (skipGameBtn) {
+        skipGameBtn.onclick = () => {
+            gameState.isSkipping = true;
+            skipGameBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 高速進行中...';
+            skipGameBtn.disabled = true;
+            if (!gameState.players[gameState.currentPlayerIndex].isHuman) {
+                 aiTurn(); 
+            }
+        };
+    }
 });
 
 if (playerImageInput) {
@@ -613,18 +628,12 @@ function preloadCharacterImages() {
 }
 
 // ==========================================
-// キャラ選択 (ここを完全に修正！)
+// キャラ選択
 // ==========================================
-let tempSelectedCharacters = [];
-let isSelectingForSpectator = false;
-
-// 矢印ボタンクリックイベント（スクロール機能）
 if (jumpBtn) {
     jumpBtn.onclick = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        
-        // 内側のコンテンツを取得してスクロール
         const modalContent = document.querySelector('.character-modal-content');
         if (modalContent) {
             modalContent.scrollTo({
@@ -635,7 +644,6 @@ if (jumpBtn) {
     };
 }
 
-// モーダルを開く関数（定義＆強化）
 function openCharacterModal(isSpectator) {
     isSelectingForSpectator = isSpectator;
     tempSelectedCharacters = [...gameState.selectedCharacters];
@@ -647,36 +655,24 @@ function openCharacterModal(isSpectator) {
     renderCharacterGrid();
     updateModalSelectionDisplay();
 
-    // ★スマホ用ロック＆矢印ボタン表示
     document.documentElement.classList.add('modal-open');
     document.body.classList.add('modal-open');
-    
-    if (jumpBtn) {
-        jumpBtn.style.display = 'flex';
-    }
+    if (jumpBtn) jumpBtn.style.display = 'flex';
 
     const firstId = Object.keys(CHARACTERS)[0];
     if (firstId) showCharacterDetails(CHARACTERS[firstId]);
 }
 
-// モーダルを閉じる関数（定義＆強化）
 function closeCharacterModalFunc() {
     characterModal.style.display = 'none';
-    
-    // ロック解除＆矢印非表示
     document.documentElement.classList.remove('modal-open');
     document.body.classList.remove('modal-open');
-    
-    if (jumpBtn) {
-        jumpBtn.style.display = 'none';
-    }
+    if (jumpBtn) jumpBtn.style.display = 'none';
 }
 
-// 閉じるボタンのイベント設定
 closeCharacterModal.onclick = closeCharacterModalFunc;
 window.onclick = (e) => { 
     if (e.target === rulesModal) rulesModal.style.display = 'none';
-    // characterModalの背景クリックは誤作動防止のため無効化推奨だが、必要ならここに追加
 };
 
 function renderCharacterGrid() {
@@ -774,7 +770,6 @@ function showCharacterDetails(char) {
     characterEnneagram.textContent = `エニアグラム: ${char.enneagram}`;
     characterDescription.textContent = char.profile || "詳細情報なし";
 
-    // ★ソシオニクスの処理（ここを追加！）
     if (char.socionics) {
         characterSocionics.textContent = `ソシオニクス: ${char.socionics}`;
         characterSocionics.style.display = 'block';
@@ -798,7 +793,6 @@ confirmSelectionBtn.onclick = () => {
     selectionStatus.textContent = `${modeName} 参加者: ${names}`;
     selectionStatus.style.color = "#333";
     selectionStatus.style.fontWeight = "bold";
-
     closeCharacterModalFunc();
 };
 
@@ -883,6 +877,10 @@ function startRound() {
     gameState.isProcessing = false;
     gameState.isTalking = false;
     gameState.isGameEnded = false;
+    gameState.isSkipping = false;
+    gameState.activeTriangleEvent = null; 
+    gameState.isExchanging = false;
+    if(skipGameBtn) skipGameBtn.style.display = 'none';
 
     gameState.players.forEach(p => {
         p.hand = [];
@@ -893,13 +891,18 @@ function startRound() {
     resultModal.style.display = 'none';
     gameScreen.style.display = 'block';
 
-    createDialogueElement();
+    createDialogueElement(); // 念の為ここでも呼ぶ
     initDeck();
     updateGameDisplay();
 
     if (gameState.round > 1) {
+        // 2回戦目以降は「交換中」フラグを立ててロックする！
+        gameState.isExchanging = true; 
+        updateGameDisplay(); // 手札は見せるけど、操作はさせない
         setTimeout(performCardExchange, 1500);
     } else {
+        // 1回戦目は通常通り
+        updateGameDisplay();
         showNotification(`第${gameState.round}回戦 スタート！`);
         if (!checkTriangleEvents()) {
             playStartVoices();
@@ -942,6 +945,7 @@ function checkTriangleEvents() {
     for (const event of TRIANGLE_EVENTS) {
         const isMatch = event.characters.every(charId => participantIds.includes(charId));
         if (isMatch && Math.random() < 0.4) {
+            gameState.activeTriangleEvent = event;
             gameState.isTalking = true;
             let delay = 500;
             const lines = event.lines.start;
@@ -968,59 +972,48 @@ function checkTriangleEvents() {
 }
 
 // ==========================================
-// ★修正: カード交換（通知を絶対に消させない版）
+// カード交換
 // ==========================================
 function performCardExchange() {
     gameState.isTalking = true;
     const playersByRank = {};
     
-    // 順位情報の取得
     gameState.players.forEach(p => {
         const r = gameState.prevRanks[p.id];
         if (r !== undefined) playersByRank[r] = p;
     });
 
-    let timeline = 0; // 時間管理用
+    let timeline = 0;
 
-    // 交換処理関数
     const processExchange = (winnerRank, loserRank, count) => {
         const winner = playersByRank[winnerRank];
         const loser = playersByRank[loserRank];
         if (!winner || !loser) return;
 
-        // --- 手札整理とカード選択 ---
         sortHand(winner.hand);
         sortHand(loser.hand);
 
-        // 勝者が出す（弱い方から）
         const giveToLoser = winner.hand.slice(0, count);
-        // 敗者が出す（強い方から）
         const giveToWinner = loser.hand.slice(loser.hand.length - count);
 
-        // --- 交換実行 ---
         exchangeCards(winner, loser, giveToLoser, giveToWinner);
-        
-        // 交換後の再整理
         sortHand(winner.hand);
         sortHand(loser.hand);
 
-        // --- ★修正: 通知ロジック ---
-        // ここではまだ通知を出さず、後でまとめて出す（画面更新で消されないように）
         if (winner.isHuman) {
             const cardNames = giveToWinner.map(c => getCardNameJP(c)).join('」と「');
             setTimeout(() => {
                 showNotification(`${loser.name}から「${cardNames}」を献上されました！`);
             }, timeline + 1000);
-            timeline += 4000; // 読む時間を確保
+            timeline += 4000;
         } else if (loser.isHuman) {
             const cardNames = giveToWinner.map(c => getCardNameJP(c)).join('」と「');
             setTimeout(() => {
                 showNotification(`${winner.name}に「${cardNames}」を没収されました…`);
             }, timeline + 1000);
-            timeline += 4000; // 読む時間を確保
+            timeline += 4000;
         }
 
-        // --- セリフ再生 ---
         if (!winner.isHuman) {
             setTimeout(() => {
                 const char = CHARACTERS[winner.character];
@@ -1037,33 +1030,33 @@ function performCardExchange() {
         }
     };
 
-    // --- 交換処理の実行 ---
-    // 先に画面を更新して、手札が変わった状態にする
     updateGameDisplay();
-
-    // 大富豪(0) <-> 大貧民(3)
     processExchange(0, 3, 2);
-    // 富豪(1) <-> 貧民(2)
     processExchange(1, 2, 1);
 
-    // --- 終了通知 ---
     setTimeout(() => {
         showNotification("都落ち/カード交換が行われました");
         
         setTimeout(() => {
              gameState.isTalking = false;
+             
+             // ★ここ追加！ロック解除してゲーム開始！
+             gameState.isExchanging = false; 
+             
              playStartVoices(); 
              showNotification(`第${gameState.round}回戦 スタート！`);
-        }, 2500);
+             
+             // ★重要！ここで改めて画面更新を呼ぶことで、AIやプレイヤーのターンが始まる
+             updateGameDisplay(); 
+
+        }, 2500); // 通知を読んでから開始
         
     }, timeline + 1000);
 }
 
-// ★追加: カード名を日本語にする関数（必須！）
 function getCardNameJP(card) {
     if (card === JOKER) return "Joker";
     if (card === RED_JOKER) return "Joker";
-    
     const rank = card.split('_of_')[0];
     const rankMap = {
         '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '10': '10',
@@ -1140,7 +1133,8 @@ function updateGameDisplay() {
     updatePlayers();
     updatePlayerHand();
 
-    if (gameState.isProcessing || gameState.isTalking || gameState.isGameEnded) return;
+    // ★ここ修正！「gameState.isExchanging」を追加して、交換中はここで処理を止める！
+    if (gameState.isProcessing || gameState.isTalking || gameState.isGameEnded || gameState.isExchanging) return;
 
     const currentPlayer = gameState.players[gameState.currentPlayerIndex];
     const isHumanTurn = currentPlayer.isHuman;
@@ -1171,7 +1165,6 @@ function checkFieldClear() {
             msg = "（あなた）が親番です";
         }
         showNotification(msg);
-
         updateField();
         return true;
     }
@@ -1187,7 +1180,6 @@ function checkFieldClear() {
                 msg = "前の親が上がりのため、親番です";
             }
             showNotification(msg);
-
             updateField();
             return true;
         }
@@ -1233,7 +1225,6 @@ function updatePlayers() {
         const char = CHARACTERS[p.character];
         const fullPath = char && char.portrait ? char.portrait : '';
         const fileNameOnly = fullPath.split('/').pop();
-
         const img = fullPath ?
             `<img src="${fullPath}" onerror="this.src='${fileNameOnly}'; this.onerror=null;" style="width:40px;height:40px;border-radius:50%;vertical-align:middle;margin-right:10px;">` :
             `<div style="width:40px;height:40px;border-radius:50%;background:#eee;display:inline-flex;align-items:center;justify-content:center;margin-right:10px;">${p.name.charAt(0)}</div>`;
@@ -1363,7 +1354,7 @@ function executePlay(player, cards, removeTarget) {
     }
 
     const strength = getCardStrength(cards[0]);
-    if (strength >= 10 || cards.some(c => c === JOKER || c === RED_JOKER)) {
+    if ((strength >= 10 || cards.some(c => c === JOKER || c === RED_JOKER)) && !gameState.isSkipping) { 
         gameState.isProcessing = true;
         let delay = 500;
         const reactors = gameState.players.filter(p =>
@@ -1403,14 +1394,18 @@ function executePlay(player, cards, removeTarget) {
 function continueExecute(player, cards) {
     if (checkRevolution(cards)) {
         gameState.revolution = !gameState.revolution;
-        showDialogue("システム", gameState.revolution ? "革命発生！！" : "革命返し！！", null, null);
+        if (!gameState.isSkipping) {
+            showDialogue("システム", gameState.revolution ? "革命発生！！" : "革命返し！！", null, null);
+        }
         gameState.players.forEach(p => sortHand(p.hand));
     }
 
     if (checkEightCut(cards)) {
-        const char = CHARACTERS[player.character];
-        if (char) showDialogue(player.name, "8切り！", player.character, 'play');
-        else showDialogue(player.name, "8切り！", "player", "play");
+        if (!gameState.isSkipping) {
+            const char = CHARACTERS[player.character];
+            if (char) showDialogue(player.name, "8切り！", player.character, 'play');
+            else showDialogue(player.name, "8切り！", "player", "play");
+        }
 
         gameState.field = [];
         gameState.lastPlayIndex = -1;
@@ -1423,53 +1418,56 @@ function continueExecute(player, cards) {
                 showNotification("8切り！あなたの親番です");
                 updateGameDisplay();
             } else {
-                showNotification(`8切り！${player.name}の親番です`);
-                setTimeout(aiTurn, 1000);
+                if(!gameState.isSkipping) showNotification(`8切り！${player.name}の親番です`);
+                setTimeout(aiTurn, getDelay(1000));
             }
-        }, 1200);
+        }, getDelay(1200));
         return;
     }
 
     if (checkWin(player)) return;
+    
     setTimeout(() => {
         advanceTurn();
-    }, 1200);
+    }, getDelay(1200));
 }
 
-// ...（前略：aiTurn関数などの続き）...
+// 遅延時間を管理する関数
+function getDelay(normalTime) {
+    return gameState.isSkipping ? 50 : normalTime;
+}
 
 function checkWin(player) {
-    // 手札がなくなった時の処理
     if (player.hand.length === 0) {
-        if (player.rank !== null) return true; // すでに上がり済みなら無視
+        if (player.rank !== null) return true;
 
         const rankIndex = gameState.finishedPlayers.length;
         
-        // ★暫定順位をつける（あとで都落ちが起きたら変動する）
         player.rank = RANKINGS[rankIndex];
         gameState.finishedPlayers.push(gameState.players.indexOf(player));
 
-        // ===============================================
-        // ★修正: 都落ち判定ロジック
-        // ===============================================
+        if (player.isHuman && !gameState.isGameEnded && gameState.finishedPlayers.length < gameState.players.length - 1) {
+            if(skipGameBtn) {
+                skipGameBtn.style.display = 'block';
+                skipGameBtn.disabled = false;
+                skipGameBtn.innerHTML = '<i class="fa-solid fa-forward"></i> 残りの試合をスキップ';
+            }
+            showNotification("おめでとう！残りの試合をスキップできます");
+        }
+
         if (gameState.round > 1 && rankIndex === 0) {
-            // 今回1位が決まった瞬間、前の大富豪(rank=0)を探す
             const prevKing = gameState.players.find(p => gameState.prevRanks[p.id] === 0);
             
-            // 前の大富豪がいて、今回の1位ではなく、まだ上がっていない場合
             if (prevKing && prevKing !== player && !gameState.finishedPlayers.includes(gameState.players.indexOf(prevKing))) {
                 
                 showNotification("都落ち発生！！");
                 
-                // ★重要: フラグを立てて、強制的にfinishedPlayersに追加する
                 prevKing.isDropped = true; 
-                prevKing.rank = RANKINGS[3]; // 表示上は大貧民にしておく
-                prevKing.hand = []; // 手札没収
+                prevKing.rank = RANKINGS[3];
+                prevKing.hand = [];
                 
-                // 1位の次にリストに追加（この時点では2番目だが、最後に並べ替える）
                 gameState.finishedPlayers.push(gameState.players.indexOf(prevKing));
 
-                // セリフ再生
                 const kChar = CHARACTERS[prevKing.character];
                 setTimeout(() => {
                     showDialogue(prevKing.name, getRandomDialogue(kChar, 'drop', prevKing), prevKing.character, 'lose');
@@ -1477,7 +1475,6 @@ function checkWin(player) {
             }
         }
 
-        // 上がりセリフ処理
         const char = CHARACTERS[player.character];
         let situation = rankIndex === 0 ? 'rank1' : 'rank2';
         if (char && char.id === 'rei' && Math.random() < 0.2) situation = 'ketchup';
@@ -1489,8 +1486,6 @@ function checkWin(player) {
             showDialogue(player.name, "上がりました！", "player", 'win');
         }
 
-        // ★ゲーム終了判定
-        // プレイヤー人数-1人が上がったら（または都落ちで埋まったら）終了
         if (gameState.finishedPlayers.length >= gameState.players.length - 1) {
             gameState.isGameEnded = true;
             setTimeout(processGameEnd, 3000);
@@ -1501,7 +1496,6 @@ function checkWin(player) {
 }
 
 function processGameEnd() {
-    // まだ上がっていない最後の1人（敗者）を探して追加
     const loserIndex = gameState.players.findIndex((p, idx) => !gameState.finishedPlayers.includes(idx));
     if (loserIndex !== -1) {
         const loser = gameState.players[loserIndex];
@@ -1509,55 +1503,31 @@ function processGameEnd() {
             loser.rank = RANKINGS[3];
             gameState.finishedPlayers.push(loserIndex);
             
-            // 敗北セリフ
             const char = CHARACTERS[loser.character];
             if (char) showDialogue(loser.name, getRandomDialogue(char, 'lose', loser), loser.character, 'lose');
             else showDialogue(loser.name, "負けました...", "player", 'lose');
         }
     }
 
-    // ===============================================
-    // ★修正: 都落ちプレイヤーを強制的に最下位に移動させる
-    // ===============================================
-    // finishedPlayers配列の中に isDropped=true の人がいたら、配列の最後に移動させる
-    // これをしないと「2番目に抜けたから富豪」扱いになってしまう
-    
-    // インデックス(数値)の配列を、プレイヤーオブジェクトの配列に変換して操作
     let sortedPlayers = gameState.finishedPlayers.map(idx => gameState.players[idx]);
-    
-    // 都落ちした人を抽出
     const droppedPlayer = sortedPlayers.find(p => p.isDropped);
     
     if (droppedPlayer) {
-        // 都落ち以外の人リスト
         const others = sortedPlayers.filter(p => !p.isDropped);
-        // [1位, 2位, 3位, ... , 都落ち] の順に再構成
         sortedPlayers = [...others, droppedPlayer];
-        
-        // フラグはリセットしておく（次の試合のため）
         droppedPlayer.isDropped = false; 
     }
 
-    // finishedPlayers を正しい順序のインデックス配列に戻す
     gameState.finishedPlayers = sortedPlayers.map(p => gameState.players.indexOf(p));
 
-    // ===============================================
-    // ★修正: 正しい順序でランク(0〜3)を保存する
-    // ===============================================
     gameState.finishedPlayers.forEach((playerIdx, rankOrder) => {
         const p = gameState.players[playerIdx];
-        
-        // ランク文字列を更新 (大富豪, 富豪, 貧民, 大貧民)
         p.rank = RANKINGS[rankOrder];
-        
-        // 次の試合のためにランク(数値)を保存
         gameState.prevRanks[p.id] = rankOrder;
     });
 
     setTimeout(showResultModal, 2500);
 }
-
-// ...（以降、showResultModalなどは変更なし）...
 
 function showResultModal() {
     resultList.innerHTML = '';
@@ -1604,14 +1574,14 @@ function aiTurn() {
     }
 
     if (checkFieldClear()) {
-        setTimeout(aiTurn, 1000);
+        setTimeout(aiTurn, getDelay(1000));
         return;
     }
 
     const charData = CHARACTERS[aiPlayer.character];
     const aiParams = charData ? (charData.aiParams || { aggressiveness: 0.5 }) : { aggressiveness: 0.5 };
 
-    if (Math.random() < 0.4) {
+    if (!gameState.isSkipping && Math.random() < 0.4) {
         showDialogue(aiPlayer.name, getRandomDialogue(charData, 'think', aiPlayer), aiPlayer.character, 'think');
     }
 
@@ -1620,14 +1590,16 @@ function aiTurn() {
     if (playableMoves.length === 0) {
         gameState.isProcessing = true;
         setTimeout(() => {
-            showDialogue(aiPlayer.name, getRandomDialogue(charData, 'pass', aiPlayer), aiPlayer.character, 'pass');
+            if (!gameState.isSkipping) {
+                showDialogue(aiPlayer.name, getRandomDialogue(charData, 'pass', aiPlayer), aiPlayer.character, 'pass');
+            }
             setTimeout(() => {
                 gameState.isProcessing = false;
                 if (!gameState.isGameEnded) {
                     advanceTurn();
                 }
-            }, 1500);
-        }, 800);
+            }, getDelay(1500));
+        }, getDelay(800));
         return;
     }
 
@@ -1661,14 +1633,16 @@ function aiTurn() {
         }
         if (selectedMove.length === 1 && situation === 'play') situation = 'single';
 
-        showDialogue(aiPlayer.name, getRandomDialogue(charData, situation, aiPlayer), aiPlayer.character, situation);
+        if (!gameState.isSkipping) {
+            showDialogue(aiPlayer.name, getRandomDialogue(charData, situation, aiPlayer), aiPlayer.character, situation);
+        }
 
         setTimeout(() => {
             gameState.isProcessing = false;
             executePlay(aiPlayer, selectedMove, selectedMove);
-        }, 1500);
+        }, getDelay(1500));
 
-    }, 800);
+    }, getDelay(800));
 }
 
 function getPlayableMoves(hand) {
@@ -1743,6 +1717,7 @@ function getPlayableMoves(hand) {
     return moves;
 }
 
+// ★ここが大事！前回書き忘れていた部分です！
 function createDialogueElement() {
     if (document.getElementById('dialogue')) return;
     const div = document.createElement('div');
@@ -1844,7 +1819,23 @@ function showNotification(text) {
 }
 
 function getRandomDialogue(char, type, playerObj) {
-    if (!char || !char.voiceLinesDetailed) return "...";
+    if (!char) return "...";
+
+    // ★1. トリプルイベント（3人の掛け合い）が発生中なら、それを最優先！
+    if (gameState.activeTriangleEvent) {
+        const eventLines = gameState.activeTriangleEvent.lines;
+        // 今の状況(type)に対応するセリフが、このキャラに設定されているか確認
+        if (eventLines[type] && eventLines[type][char.id]) {
+            const triLines = eventLines[type][char.id];
+            if (triLines && triLines.length > 0) {
+                 return triLines[Math.floor(Math.random() * triLines.length)];
+            }
+        }
+    }
+
+    if (!char.voiceLinesDetailed) return "...";
+
+    // 2. ペアセリフ（トリプルがない、またはトリプルのセリフ定義がない場合）
     const otherSurvivors = gameState.players.filter(p => p.id !== playerObj.id && !gameState.finishedPlayers.includes(gameState.players.indexOf(p)));
     if (otherSurvivors.length > 0 && char.pairLinesDetailed) {
         const validTargets = otherSurvivors.filter(target => char.pairLinesDetailed[target.character] && char.pairLinesDetailed[target.character][type]);
@@ -1854,6 +1845,8 @@ function getRandomDialogue(char, type, playerObj) {
             return pLines[Math.floor(Math.random() * pLines.length)];
         }
     }
+
+    // 3. 通常セリフ
     const lines = char.voiceLinesDetailed[type];
     if (!lines || lines.length === 0) {
         if (type === 'drop') return "……っ。";
