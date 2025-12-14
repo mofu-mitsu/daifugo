@@ -540,6 +540,7 @@ const characterPortrait = document.getElementById('character-portrait');
 const characterName = document.getElementById('character-name');
 const characterMbti = document.getElementById('character-mbti');
 const characterEnneagram = document.getElementById('character-enneagram');
+const characterSocionics = document.getElementById('character-socionics');
 const characterDescription = document.getElementById('character-description');
 
 const resultModal = document.getElementById('result-modal');
@@ -772,6 +773,14 @@ function showCharacterDetails(char) {
     characterMbti.textContent = `MBTI: ${char.MBTI}${gender}`;
     characterEnneagram.textContent = `エニアグラム: ${char.enneagram}`;
     characterDescription.textContent = char.profile || "詳細情報なし";
+
+    // ★ソシオニクスの処理（ここを追加！）
+    if (char.socionics) {
+        characterSocionics.textContent = `ソシオニクス: ${char.socionics}`;
+        characterSocionics.style.display = 'block';
+    } else {
+        characterSocionics.style.display = 'none';
+    }
 
     const fullPath = char.portrait || '';
     const fileNameOnly = fullPath.split('/').pop();
@@ -1891,4 +1900,4 @@ function startBgm() {
             console.log("Auto-play blocked, waiting for interaction.");
         });
     }
-                           }
+}
