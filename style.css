@@ -312,7 +312,28 @@ html.modal-open, body.modal-open {
     animation: bounce 2s infinite;
 }
 
+/* === ルールモーダル専用の修正 === */
+#rules-modal .modal-content {
+    height: auto !important; /* 高さを中身に合わせる */
+    max-height: 80vh !important; /* 最大高さを画面の8割に */
+    overflow-y: auto; /* スクロールできるように */
+}
 
+/* ルール文の装飾 */
+#rule-explanation {
+    text-align: left;
+    padding: 10px 20px;
+    line-height: 1.8;
+    color: #555;
+    background: #fff;
+}
+#rule-explanation h3 {
+    margin-top: 25px;
+    margin-bottom: 10px;
+    border-bottom: 2px dashed #a777e3;
+    display: inline-block;
+    color: #a777e3;
+}
 
 /* 下向きに弾むアニメーション */
 @keyframes bounce {
