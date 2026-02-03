@@ -4280,7 +4280,7 @@ const CHARACTER_LIST = [
   {
     "id": "ryogo",
     "name": "りょうご",
-    "MBTI": "INTJ（二分法）",
+    "MBTI": "INTJ",
     "enneagram": "5w6",
     "socionics": "LSI",
     "profile": "水上 亮吾（みずかみ りょうご）\n冷静沈着な水兵部の技術担当。青虫モチーフ",
