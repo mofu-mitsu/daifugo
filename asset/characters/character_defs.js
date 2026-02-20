@@ -3141,7 +3141,7 @@ const CHARACTER_LIST = [
     "id": "mikina",
     "name": "みきな",
     "MBTI": "ENFP",
-    "enneagram": "2w3",
+    "enneagram": "9w1",
     "profile": "鈴木 幹菜（すずき みきな）\n表向きは明るいまきしの双子の妹",
     "gender": "女",
     "portrait": "images/characters/mikina.png",
