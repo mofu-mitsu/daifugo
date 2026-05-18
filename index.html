@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-GNTX973GET"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -10,144 +10,169 @@
     gtag('js', new Date());
     gtag('config', 'G-GNTX973GET');
   </script>
-  <!-- ★ SEO基本設定 ★ -->
-  <title>理想のソシオニクス恋愛診断💓 | あなたの「真の理想」を暴く</title>
-  <meta name="description" content="既存の相性論を疑え！ソシオニクスの理論に基づき、あなたが本能的に惹かれる相手の役割（侵略者・犠牲者・保護者・子ども）を特殊ギミックで炙り出します。">
-  <meta name="keywords" content="ソシオニクス, 恋愛診断, 相性診断, 心理テスト, 16タイプ, LII, ILI, 恋愛スタイル">
-  <meta name="author" content="Mitsuki">
+  <title>無料ブラウザ大富豪！AIキャラと1人で対戦できるトランプゲーム｜とりの丘トリ’S</title>
+  <meta name="description" content="インストール不要！1人ですぐ遊べる無料の大富豪ブラウザゲーム。みりんてゃとクラスメイト達が賑やかに戦うAI対戦で、都落ち・献上・観戦モードも搭載！">
+  <meta name="keywords" content="大富豪, 無料, ブラウザゲーム, トランプ, 1人, AI対戦, とりの丘">
+  <meta name="google-site-verification" content="b7ayC_ApkqZfpMCdnvnmZPQtpDMW8FATSpv0q1T2uV4" />
+  <!-- 基本メタ -->
+  <meta name="theme-color" content="#ffb6d5">
 
-  <!-- ★ OGP設定 (SNS共有時の見栄え) ★ -->
-  <meta property="og:title" content="理想のソシオニクス恋愛診断💓">
-  <meta property="og:description" content="「双対関係」が答えとは限らない。あなたが惹かれる真の理想像を、体験型ミニゲームで解読します。">
+  <!-- Icons -->
+  <link rel="icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <!-- OGP -->
+  <meta property="og:title" content="とりの丘トリズ大富豪">
+  <meta property="og:description" content="インストール不要！1人ですぐ遊べる無料の大富豪ブラウザゲーム。みりんてゃとクラスメイト達が賑やかに戦うAI対戦で、都落ち・献上・観戦モードも搭載！">
+  <meta property="og:image" content="https://daifugo-mofu.vercel.app/ogp.png">
+  <meta property="og:url" content="https://daifugo-mofu.vercel.app/">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://mofu-mitsu.github.io/ideal-partner-diagnosis/">
-  <meta property="og:image" content="https://mofu-mitsu.github.io/ideal-partner-diagnosis/ogp.png">
-  <meta property="og:site_name" content="理想のソシオニクス恋愛診断">
-  
-  <!-- Twitter/X Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="理想のソシオニクス恋愛診断💓">
-  <meta name="twitter:description" content="既存の相性論を疑え。あなたの深層心理に眠る理想のパートナー像を特定します。">
-  <meta name="twitter:image" content="https://mofu-mitsu.github.io/ideal-partner-diagnosis/ogp.png">
 
-  <!-- ★ 絵文字ファビコン 💎 ★ -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%%22 y=%2250%%22 style=%22dominant-baseline:central;text-anchor:middle;font-size:90px;%22>💎</text></svg>">
-
-  <!-- 外部ライブラリ -->
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<!-- ★ 手描き風フォントの読み込み -->
-  <link href="https://fonts.googleapis.com/css2?family=Yomogi&display=swap" rel="stylesheet">
+  
+  <!-- CSS -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <header><h1><i class="fa-solid fa-vial-circle-check"></i> 理想のソシオ恋愛診断</h1></header>
+    <!-- BGM切り替えボタン -->
+    <button id="bgm-toggle" class="bgm-btn">
+        <i class="fa-solid fa-volume-xmark"></i>
+    </button>
+    
+    <!-- オーディオタグ -->
+    <audio id="bgm-audio" src="daifugoBGM.ogg" loop preload="auto"></audio>
 
-    <main>
-      <section id="start-screen" class="screen active">
-        <div class="start-box">
-          <a href="https://mofu-mitsu.github.io/lab.html" class="home-link"><i class="fa-solid fa-house"></i> ホームへ戻る</a>
-          
-          <h2>「双対関係」が答えとは限らない。</h2>
-          
-          <!-- ✉️ 招待状セクション -->
-          <div class="invitation-card">
-            <h3>INVITATION</h3>
-            <p>ソシオニクスの定説では、自分を補う「双対（Dual）」こそが理想とされます。しかし、本当にそうでしょうか？</p>
-            <p>安らぎ（Si）よりも深淵（Ni）を覗き込みたい衝動。支配されるよりも、対等に奪い合いたい本能。あなたの<b>知的好奇心</b>は、理論上の正解を裏切るかもしれません。</p>
-            <p>この実験では、特殊ギミックを通じてあなたの「無意識の渇望」を解析し、256通りのマトリックスから真の理想像を特定します。</p>
-            <div class="wax-seal">💎</div>
-          </div>
-          
-          <div class="identity-input-box">
-            <label for="type-input">📝 あなたの自認タイプ</label>
-            <input type="text" id="type-input" placeholder="例：INTJ、LII">
-            <label for="ideal-socio" style="margin-top:15px;">💖 気になるソシオタイプ</label>
-            <input type="text" id="ideal-socio" placeholder="例：ILI、IEE">
-          </div>
-          
-          <button id="start-btn" class="btn btn-large">実験（デバッグ）を開始する</button>
-        </div>
-      </section>
+    <!-- ゲーム内通知（一番手前に表示） -->
+    <div id="game-notification"></div>
 
-      <section id="checkbox-screen" class="screen">
-        <h2>✅ Part 1: パートナーの絶対条件</h2>
-        <p>あなたが「いいな」と思う要素にすべてチェックを。</p>
-        <div id="checkbox-container"></div>
-        <button id="to-room-btn" class="btn">次へ（シミュレーションへ）</button>
-      </section>
-
-      <section id="room-screen" class="screen">
-        <div id="gauge-container">
-          <div class="gauge-row"><span>⚔️ 侵略を求む</span><div class="bar-bg"><div id="bar-aggressor" class="bar aggressor"></div></div></div>
-          <div class="gauge-row"><span>⛓️ 犠牲を求む</span><div class="bar-bg"><div id="bar-victim" class="bar victim"></div></div></div>
-          <div class="gauge-row"><span>🍵 保護を求む</span><div class="bar-bg"><div id="bar-caring" class="bar caring"></div></div></div>
-          <div class="gauge-row"><span>🧸 子どもを求む</span><div class="bar-bg"><div id="bar-childlike" class="bar childlike"></div></div></div>
-        </div>
-
-        <h2>🎭 Part 2: 理想の挙動観測</h2>
-        <p class="room-guide">好きなアイコンを10個以上タップしてね！</p>
-        <div id="room">
-          <button class="room-item" id="item-wish">🎁</button>
-          <button class="room-item" id="item-abyss">🌌</button>
-          <button class="room-item" id="item-phone">📱</button>
-          <button class="room-item" id="item-clinic">🏥</button>
-          <button class="room-item" id="item-fight">🥊</button>
-          <button class="room-item" id="item-mirror">🪞</button>
-          <button class="room-item" id="item-tug">⚖️</button>
-          <button class="room-item" id="item-target">🎯</button>
-          <button class="room-item" id="item-eye">👁️</button>
-          <button class="room-item" id="item-bugtoss">⚾</button>
-          <button class="room-item" id="item-walldon">🧱</button>
-          
-          <button class="room-item" id="item-care">🛏️</button>
-          <button class="room-item" id="item-chase">⛓️</button>
-          <button class="room-item" id="item-invasion">🌿</button>
-
-          <div id="item-bug">🐛</div>
-          <div id="bug-speech" class="hidden"></div>
-        </div>
-        <button id="submit-btn" class="btn hidden">解析結果を出力！</button>
-      </section>
-
-      <section id="result-screen" class="screen">
-        <!-- ⌛ ローディング画面 -->
-        <div id="loading-overlay" class="hidden">
-          <div class="loader-content">
-            <i class="fa-solid fa-atom fa-spin"></i>
-            <p>理想の魂を抽出中...</p>
-          </div>
-        </div>
-        <div id="capture-area">
-          <h2>🎉 解析結果</h2>
-          <div id="result-identity" class="result-identity"></div>
-          <div id="result-content"></div>
-
-          <!-- ★ 16タイプ特定ギミック！ -->
-          <div id="extra-diagnosis-area" style="margin-top:20px;">
-            <button id="detail-btn" class="btn" style="background:#6c5ce7;">🔍 理想の16タイプを特定する！</button>
-            <div id="detail-result" class="hidden" style="margin-top:15px; padding:15px; background:#f1f2f6; border-radius:8px; border:2px dashed #6c5ce7;"></div>
-          </div>
-        </div>
+    <!-- メインゲームコンテナ -->
+    <div id="game-container">
+        <h1>とりの丘トリ’S大富豪</h1>
         
-        <div class="share-actions">
-          <button id="save-img-btn" class="btn action-btn" style="background:#0984e3;"><i class="fa-solid fa-camera"></i> 保存</button>
-          <button id="share-nav-btn" class="btn action-btn" style="background:#2d3436;"><i class="fa-solid fa-share-nodes"></i> 共有</button>
-        </div>
-        <div id="img-output-area" class="hidden">
-          <p class="mobile-save-guide"><i class="fa-solid fa-mobile-screen"></i> スマホの方は下の画像を【長押し】して保存！</p>
-          <img id="result-image" src="" alt="診断結果">
-        </div>
-        <button id="retry-btn" class="btn" style="margin-top:20px;">再実験</button>
-      </section>
-    </main>
-  </div>
+        <!-- セットアップ画面 -->
+        <div id="setup-screen">
+            <h2>プレイヤー設定</h2>
+            
+            <div class="input-group">
+                <label for="player-name">あなたの名前:</label>
+                <input type="text" id="player-name" placeholder="名前を入力">
+            </div>
 
-  <div id="modal-overlay" class="hidden"><div id="modal-content"></div></div>
-  <div id="custom-alert" class="hidden"><div class="alert-box"><div id="alert-msg"></div><button id="alert-close" class="btn">閉じる</button></div></div>
+            <div class="input-group">
+                <label for="player-image">あなたのアイコン:</label>
+                <input type="file" id="player-image" accept="image/png, image/jpeg, image/jpg, image/gif">
+            </div>
+            
+            <button id="show-rules">ルール説明</button>
+            
+            <h3>ゲームモード選択</h3>
+            <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                <button id="select-characters-btn">対戦相手を選ぶ (通常)</button>
+                <button id="spectator-mode-btn" style="background: linear-gradient(45deg, #FF9800, #F44336);">観戦モードで選ぶ</button>
+            </div>
 
-  <script src="data.js"></script>
-  <script src="script.js"></script>
+            <div id="ai-character-selection" style="margin-top: 15px;">
+                <p id="selection-status">まだ選択されていません</p>
+            </div>
+            
+            <button id="start-game">ゲーム開始</button>
+        </div>
+
+        <!-- ゲームプレイ画面 -->
+        <div id="game-screen" style="display: none;">
+            <div id="field"></div>
+            <div id="players"></div>
+            <div id="player-hand"></div>
+            <!-- ★スキップボタン（最初は非表示） -->
+            <button id="skip-game-btn" style="display: none; margin: 0 auto 20px auto; background: linear-gradient(45deg, #FFC107, #FF9800); color: white; padding: 10px 30px; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);">
+                <i class="fa-solid fa-forward"></i> 残りの試合をスキップ
+            </button>
+            <div id="controls">
+                <button id="play-button">出す</button>
+                <button id="pass-button">パス</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ルール説明モーダル -->
+    <div id="rules-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>ルール説明</h2>
+            <div id="rule-explanation">
+                <p>・最初に山札の52枚を、選択した人数で均等に配ります。</p>
+                <p>・ゲームは時計回りで進行し、順番にカードを出します。</p>
+                <p>・カードは同じ数字のものを1枚以上まとめて出せます。</p>
+                <p>・場のカードより強いカードのみ出せます。（革命中は強弱が逆転します）</p>
+                <p>・カードの強さは、3 < 4 < 5 < 6 < 7 < 8 < 9 < 10 < J < Q < K < A < 2 です。</p>
+                <p>・8を含むカードを出すと、場が流れてリセットされ、同じ枚数のカードが出せます。</p>
+                <p>・同じ数字を4枚出すと「革命」が発生し、カードの強弱が逆転します。</p>
+                <p>・手札をすべて出し切ると上がりとなり、順位（大富豪・富豪・貧民・大貧民）が決定します。</p>
+            
+                <h3>【都落ち】</h3>
+                <p>・前の試合で「大富豪」だったプレイヤーが、次の試合で負けた場合、順位に関係なく自動的に「大貧民」へ落ちます。</p>
+            
+                <h3>【献上（カード交換）】</h3>
+                <p>・試合開始時、「大貧民」は「大富豪」に最も強いカードを2枚献上します。（富豪↔貧民は1枚）</p>
+            
+                <h3>【観戦モード】</h3>
+                <p>・プレイヤーが参加せず、NPCキャラ（みりんてゃ達）が自動対戦する試合を観戦できます。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- キャラクター選択モーダル -->
+    <div id="character-modal" class="modal">
+        <!-- ワープボタン -->
+        <button id="modal-jump-btn"><i class="fa-solid fa-arrow-down"></i></button>
+    
+        <div class="modal-content character-modal-content">
+            <span class="close" id="close-character-modal">&times;</span>
+            <h2>キャラクターを選択</h2>
+            
+            <div class="character-grid" id="character-grid">
+                <!-- キャラクター一覧はJavaScriptで動的に生成 -->
+            </div>
+            
+            <div class="character-details" id="character-details">
+                <h3>キャラクタープロフィール</h3>
+                <div class="character-portrait">
+                    <img id="character-portrait" src="" alt="キャラクター画像">
+                </div>
+                <div class="character-info">
+                    <h4 id="character-name">名前: -</h4>
+                    <p id="character-mbti">MBTI: -</p>
+                    <p id="character-enneagram">エニアグラム: -</p>
+                    <p id="character-socionics" style="display:none;">ソシオニクス: -</p> 
+                    <p id="character-description">説明: -</p>
+                </div>
+            </div>
+            
+            <div class="selected-characters" id="selected-characters">
+                <h3>選択されたキャラクター</h3>
+                <div id="selected-characters-list"></div>
+                <button id="confirm-selection" class="confirm-btn">選択を確定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- リザルト（結果発表）モーダル -->
+    <div id="result-modal" class="modal">
+        <div class="modal-content result-content">
+            <h2>ゲーム終了！</h2>
+            <div id="result-list">
+                <!-- ここに順位が入る -->
+            </div>
+            <div class="result-buttons">
+                <button id="next-round-button">同じメンバーで次へ</button>
+                <button id="title-button">タイトルに戻る</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- スクリプト -->
+    <script src="asset/characters/character_defs.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
