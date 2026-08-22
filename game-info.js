@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -----------------------------
-    // ページ下部の紹介ボタン
+    // ページ最下部の紹介ボタン
     // -----------------------------
     // SEO本文はHTMLに残すが、通常画面では表示しない。
     const seoContent = document.querySelector('.seo-content');
@@ -49,11 +49,14 @@ document.addEventListener('DOMContentLoaded', () => {
         bottomInfoButton.id = 'bottom-game-info';
         bottomInfoButton.type = 'button';
         bottomInfoButton.textContent = '📖 このゲームの紹介・特徴を見る';
+        // bodyの最後に追加することで、ページの最後にだけ表示する。
+        // position: fixed は使わず、スクロールについてこない通常の要素にする。
         document.body.appendChild(bottomInfoButton);
         bottomInfoButton.addEventListener('click', openInfoModal);
     }
 
-    // ゲーム中は画面下の固定ボタンが操作の邪魔にならないよう非表示。
+    // ゲーム中は紹介ボタンを非表示にする。
+    // ゲーム終了後にセットアップ画面へ戻った場合は再表示する。
     const updateBottomButtonVisibility = () => {
         if (!bottomInfoButton || !setupScreen || !gameScreen) return;
         const gameIsVisible = getComputedStyle(gameScreen).display !== 'none';
@@ -63,12 +66,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateBottomButtonVisibility();
 
-    if (gameScreen) {
+    const observerTargets = [gameScreen, setupScreen].filter(Boolean);
+    if (observerTargets.length) {
         const observer = new MutationObserver(updateBottomButtonVisibility);
-        observer.observe(gameScreen, { attributes: true, attributeFilter: ['style', 'class'] });
-        if (setupScreen) {
-            observer.observe(setupScreen, { attributes: true, attributeFilter: ['style', 'class'] });
-        }
+        observerTargets.forEach((target) => {
+            observer.observe(target, { attributes: true, attributeFilter: ['style', 'class'] });
+        });
     }
 
     // -----------------------------
@@ -155,12 +158,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const style = document.createElement('style');
     style.textContent = `
         #bottom-game-info {
-            position: fixed;
-            z-index: 1200;
-            left: 50%;
-            bottom: max(14px, env(safe-area-inset-bottom));
-            transform: translateX(-50%);
-            margin: 0;
+            /* 固定・追従させず、bodyの最後にある通常の要素として表示 */
+            position: static;
+            display: block;
+            width: fit-content;
+            max-width: calc(100% - 24px);
+            margin: 24px auto 28px;
             padding: 10px 22px;
             border: 2px solid #6e8efb;
             border-radius: 999px;
@@ -239,6 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
         @media (max-width: 600px) {
             #bottom-game-info {
                 max-width: calc(100% - 24px);
+                margin: 20px auto 24px;
                 padding: 9px 16px;
                 font-size: .88rem;
             }
