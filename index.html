@@ -6,172 +6,109 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-GNTX973GET"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag(){window.dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'G-GNTX973GET');
   </script>
-  <title>無料ブラウザ大富豪！AIキャラと1人で対戦できるトランプゲーム｜とりの丘トリ’S</title>
-  <meta name="description" content="インストール不要！1人ですぐ遊べる無料の大富豪ブラウザゲーム。みりんてゃとクラスメイト達が賑やかに戦うAI対戦で、都落ち・献上・観戦モードも搭載！">
+  <title>無料で遊べる大富豪ブラウザゲーム｜AIキャラと1人で対戦！｜とりの丘トリ’S</title>
+  <meta name="description" content="インストール不要！1人ですぐ遊べる無料の大富豪ブラウザゲーム。みりんてゃたちAIキャラクターと対戦でき、都落ち・献上・革命・8切り・観戦モードも楽しめます！">
   <meta name="keywords" content="大富豪, 無料, ブラウザゲーム, トランプ, 1人, AI対戦, とりの丘">
   <meta name="google-site-verification" content="b7ayC_ApkqZfpMCdnvnmZPQtpDMW8FATSpv0q1T2uV4" />
-  <!-- 基本メタ -->
   <meta name="theme-color" content="#ffb6d5">
-
-  <!-- Icons -->
   <link rel="icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-
-  <!-- OGP -->
-  <meta property="og:title" content="とりの丘トリズ大富豪">
-  <meta property="og:description" content="インストール不要！1人ですぐ遊べる無料の大富豪ブラウザゲーム。みりんてゃとクラスメイト達が賑やかに戦うAI対戦で、都落ち・献上・観戦モードも搭載！">
+  <meta property="og:title" content="とりの丘トリ’S大富豪｜無料ブラウザゲーム">
+  <meta property="og:description" content="インストール不要！AIキャラクターと1人で遊べる無料の大富豪ブラウザゲーム。都落ち・献上・観戦モードも搭載！">
   <meta property="og:image" content="https://daifugo-mofu.vercel.app/ogp.png">
   <meta property="og:url" content="https://daifugo-mofu.vercel.app/">
   <meta property="og:type" content="website">
-
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- CSS -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- BGM切り替えボタン -->
-    <button id="bgm-toggle" class="bgm-btn">
-        <i class="fa-solid fa-volume-xmark"></i>
-    </button>
-    
-    <!-- オーディオタグ -->
+    <button id="bgm-toggle" class="bgm-btn"><i class="fa-solid fa-volume-xmark"></i></button>
     <audio id="bgm-audio" src="daifugoBGM.ogg" loop preload="auto"></audio>
-
-    <!-- ゲーム内通知（一番手前に表示） -->
     <div id="game-notification"></div>
 
-    <!-- メインゲームコンテナ -->
     <div id="game-container">
         <h1>とりの丘トリ’S大富豪</h1>
-        
-        <!-- セットアップ画面 -->
         <div id="setup-screen">
             <h2>プレイヤー設定</h2>
-            
             <div class="input-group">
                 <label for="player-name">あなたの名前:</label>
                 <input type="text" id="player-name" placeholder="名前を入力">
             </div>
-
             <div class="input-group">
                 <label for="player-image">あなたのアイコン:</label>
                 <input type="file" id="player-image" accept="image/png, image/jpeg, image/jpg, image/gif">
             </div>
-            
             <button id="show-rules">ルール説明</button>
-            
             <h3>ゲームモード選択</h3>
             <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                 <button id="select-characters-btn">対戦相手を選ぶ (通常)</button>
                 <button id="spectator-mode-btn" style="background: linear-gradient(45deg, #FF9800, #F44336);">観戦モードで選ぶ</button>
             </div>
-
-            <div id="ai-character-selection" style="margin-top: 15px;">
-                <p id="selection-status">まだ選択されていません</p>
-            </div>
-            
+            <div id="ai-character-selection" style="margin-top: 15px;"><p id="selection-status">まだ選択されていません</p></div>
             <button id="start-game">ゲーム開始</button>
         </div>
-
-        <!-- ゲームプレイ画面 -->
         <div id="game-screen" style="display: none;">
             <div id="field"></div>
             <div id="players"></div>
             <div id="player-hand"></div>
-            <!-- ★スキップボタン（最初は非表示） -->
-            <button id="skip-game-btn" style="display: none; margin: 0 auto 20px auto; background: linear-gradient(45deg, #FFC107, #FF9800); color: white; padding: 10px 30px; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);">
-                <i class="fa-solid fa-forward"></i> 残りの試合をスキップ
-            </button>
-            <div id="controls">
-                <button id="play-button">出す</button>
-                <button id="pass-button">パス</button>
-            </div>
+            <button id="skip-game-btn" style="display: none; margin: 0 auto 20px auto; background: linear-gradient(45deg, #FFC107, #FF9800); color: white; padding: 10px 30px; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);"><i class="fa-solid fa-forward"></i> 残りの試合をスキップ</button>
+            <div id="controls"><button id="play-button">出す</button><button id="pass-button">パス</button></div>
         </div>
     </div>
-    
-    <!-- ルール説明モーダル -->
+
+    <section class="seo-content" aria-label="とりの丘トリ’S大富豪の紹介">
+        <h2>無料で遊べる大富豪ブラウザゲーム</h2>
+        <p>「とりの丘トリ’S大富豪」は、<strong>インストール不要・無料で遊べる大富豪ブラウザゲーム</strong>です。パソコンやスマートフォンのブラウザからアクセスして、いつでも気軽にトランプゲームの大富豪を楽しめます。</p>
+        <p>一人で遊びたいときも大丈夫。個性豊かなAIキャラクターを対戦相手に選んで、CPU対戦を楽しめます。</p>
+
+        <h2>AIキャラクターと1人で大富豪対戦</h2>
+        <p>この大富豪ゲームでは、みりんてゃをはじめとするキャラクターの中から好きな対戦相手を選択できます。友達と予定を合わせなくても、<strong>1人でAIキャラクターと大富豪を対戦</strong>できます。</p>
+        <p>キャラクターにはそれぞれプロフィールが用意されているので、対戦相手を選ぶところから楽しめます。</p>
+
+        <h2>観戦モードでAI同士の大富豪を楽しめる</h2>
+        <p>プレイヤー自身がゲームに参加せず、NPCキャラクター同士の対戦を観戦できる<strong>観戦モード</strong>も搭載しています。AIキャラクターたちが自動で戦う大富豪を眺めたいときにも遊べます。</p>
+
+        <h2>搭載している大富豪ルール</h2>
+        <p>基本的な大富豪のルールに加えて、<strong>革命・8切り・都落ち・献上</strong>などのルールに対応しています。手札を出していき、誰よりも早くカードをなくして大富豪を目指しましょう。</p>
+        <ul>
+            <li>カードの強さ：3から2まで</li>
+            <li>革命：同じ数字のカード4枚で強さが逆転</li>
+            <li>8切り：8を含むカードを出すと場が流れる</li>
+            <li>都落ち：前回の大富豪が次の試合で負けると大貧民へ</li>
+            <li>献上：順位に応じてカードを交換</li>
+        </ul>
+        <p class="seo-link"><a href="rules.html">大富豪のルールを詳しく見る →</a></p>
+
+        <h2>無料・インストール不要ですぐ遊べる</h2>
+        <p>アプリのインストールや会員登録は必要ありません。このページを開くだけで、無料で大富豪をプレイできます。AIキャラクターとの1人用対戦を気軽に楽しみたいときにどうぞ。</p>
+    </section>
+
+    <footer class="site-footer"><a href="rules.html">大富豪のルール</a><span>｜</span><a href="https://github.com/mofu-mitsu/daifugo-mofu">GitHub</a></footer>
+
     <div id="rules-modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>ルール説明</h2>
-            <div id="rule-explanation">
-                <p>・最初に山札の52枚を、選択した人数で均等に配ります。</p>
-                <p>・ゲームは時計回りで進行し、順番にカードを出します。</p>
-                <p>・カードは同じ数字のものを1枚以上まとめて出せます。</p>
-                <p>・場のカードより強いカードのみ出せます。（革命中は強弱が逆転します）</p>
-                <p>・カードの強さは、3 < 4 < 5 < 6 < 7 < 8 < 9 < 10 < J < Q < K < A < 2 です。</p>
-                <p>・8を含むカードを出すと、場が流れてリセットされ、同じ枚数のカードが出せます。</p>
-                <p>・同じ数字を4枚出すと「革命」が発生し、カードの強弱が逆転します。</p>
-                <p>・手札をすべて出し切ると上がりとなり、順位（大富豪・富豪・貧民・大貧民）が決定します。</p>
-            
-                <h3>【都落ち】</h3>
-                <p>・前の試合で「大富豪」だったプレイヤーが、次の試合で負けた場合、順位に関係なく自動的に「大貧民」へ落ちます。</p>
-            
-                <h3>【献上（カード交換）】</h3>
-                <p>・試合開始時、「大貧民」は「大富豪」に最も強いカードを2枚献上します。（富豪↔貧民は1枚）</p>
-            
-                <h3>【観戦モード】</h3>
-                <p>・プレイヤーが参加せず、NPCキャラ（みりんてゃ達）が自動対戦する試合を観戦できます。</p>
-            </div>
-        </div>
+        <div class="modal-content"><span class="close">&times;</span><h2>ルール説明</h2><div id="rule-explanation">
+            <p>・最初に山札の52枚を、選択した人数で均等に配ります。</p><p>・ゲームは時計回りで進行し、順番にカードを出します。</p><p>・カードは同じ数字のものを1枚以上まとめて出せます。</p><p>・場のカードより強いカードのみ出せます。（革命中は強弱が逆転します）</p><p>・カードの強さは、3 &lt; 4 &lt; 5 &lt; 6 &lt; 7 &lt; 8 &lt; 9 &lt; 10 &lt; J &lt; Q &lt; K &lt; A &lt; 2 です。</p><p>・8を含むカードを出すと、場が流れてリセットされ、同じ枚数のカードが出せます。</p><p>・同じ数字を4枚出すと「革命」が発生し、カードの強弱が逆転します。</p><p>・手札をすべて出し切ると上がりとなり、順位（大富豪・富豪・貧民・大貧民）が決定します。</p>
+            <h3>【都落ち】</h3><p>・前の試合で「大富豪」だったプレイヤーが、次の試合で負けた場合、順位に関係なく自動的に「大貧民」へ落ちます。</p>
+            <h3>【献上（カード交換）】</h3><p>・試合開始時、「大貧民」は「大富豪」に最も強いカードを2枚献上します。（富豪↔貧民は1枚）</p>
+            <h3>【観戦モード】</h3><p>・プレイヤーが参加せず、NPCキャラ（みりんてゃ達）が自動対戦する試合を観戦できます。</p>
+        </div></div>
     </div>
 
-    <!-- キャラクター選択モーダル -->
     <div id="character-modal" class="modal">
-        <!-- ワープボタン -->
         <button id="modal-jump-btn"><i class="fa-solid fa-arrow-down"></i></button>
-    
-        <div class="modal-content character-modal-content">
-            <span class="close" id="close-character-modal">&times;</span>
-            <h2>キャラクターを選択</h2>
-            
-            <div class="character-grid" id="character-grid">
-                <!-- キャラクター一覧はJavaScriptで動的に生成 -->
-            </div>
-            
-            <div class="character-details" id="character-details">
-                <h3>キャラクタープロフィール</h3>
-                <div class="character-portrait">
-                    <img id="character-portrait" src="" alt="キャラクター画像">
-                </div>
-                <div class="character-info">
-                    <h4 id="character-name">名前: -</h4>
-                    <p id="character-mbti">MBTI: -</p>
-                    <p id="character-enneagram">エニアグラム: -</p>
-                    <p id="character-socionics" style="display:none;">ソシオニクス: -</p> 
-                    <p id="character-description">説明: -</p>
-                </div>
-            </div>
-            
-            <div class="selected-characters" id="selected-characters">
-                <h3>選択されたキャラクター</h3>
-                <div id="selected-characters-list"></div>
-                <button id="confirm-selection" class="confirm-btn">選択を確定</button>
-            </div>
+        <div class="modal-content character-modal-content"><span class="close" id="close-character-modal">&times;</span><h2>キャラクターを選択</h2>
+            <div class="character-grid" id="character-grid"></div>
+            <div class="character-details" id="character-details"><h3>キャラクタープロフィール</h3><div class="character-portrait"><img id="character-portrait" src="" alt="キャラクター画像"></div><div class="character-info"><h4 id="character-name">名前: -</h4><p id="character-mbti">MBTI: -</p><p id="character-enneagram">エニアグラム: -</p><p id="character-socionics" style="display:none;">ソシオニクス: -</p><p id="character-description">説明: -</p></div></div>
+            <div class="selected-characters" id="selected-characters"><h3>選択されたキャラクター</h3><div id="selected-characters-list"></div><button id="confirm-selection" class="confirm-btn">選択を確定</button></div>
         </div>
     </div>
 
-    <!-- リザルト（結果発表）モーダル -->
-    <div id="result-modal" class="modal">
-        <div class="modal-content result-content">
-            <h2>ゲーム終了！</h2>
-            <div id="result-list">
-                <!-- ここに順位が入る -->
-            </div>
-            <div class="result-buttons">
-                <button id="next-round-button">同じメンバーで次へ</button>
-                <button id="title-button">タイトルに戻る</button>
-            </div>
-        </div>
-    </div>
+    <div id="result-modal" class="modal"><div class="modal-content result-content"><h2>ゲーム終了！</h2><div id="result-list"></div><div class="result-buttons"><button id="next-round-button">同じメンバーで次へ</button><button id="title-button">タイトルに戻る</button></div></div></div>
 
-    <!-- スクリプト -->
     <script src="asset/characters/character_defs.js"></script>
     <script src="script.js"></script>
 </body>
