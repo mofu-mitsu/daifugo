@@ -23,9 +23,16 @@
     .seo-content ul { padding-left: 1.5em; }
     .seo-content a { color:#6e8efb; font-weight:bold; }
     .seo-link { text-align:center; margin-top:20px !important; }
+    .play-cta { display:block; width:min(360px,90%); margin:26px auto 8px; padding:15px 24px; border-radius:999px; background:linear-gradient(45deg,#4facfe,#00f2fe); color:#fff !important; text-align:center; text-decoration:none; font-size:1.1rem; font-weight:bold; box-shadow:0 8px 20px rgba(79,172,254,.25); }
+    .play-cta:hover { transform:translateY(-3px); box-shadow:0 12px 25px rgba(79,172,254,.32); }
     .site-footer { padding: 0 0 30px; color:#fff; font-weight:bold; }
     .site-footer a { color:#fff; text-decoration:none; }
-    @media (max-width: 600px) { .seo-content { padding:24px 20px; } .seo-content h2 { font-size:1.3rem; } }
+    @media (max-width: 600px) {
+      .seo-content { width:calc(100% - 20px); padding:30px 18px 24px; border-radius:24px; }
+      .seo-content h2 { font-size:1.2rem; line-height:1.55; overflow-wrap:anywhere; }
+      .seo-content p { font-size:1rem; line-height:1.9; }
+      .play-cta { font-size:1rem; padding:14px 18px; }
+    }
   </style>
 </head>
 <body>
@@ -51,6 +58,7 @@
         <h2>無料で遊べる大富豪ブラウザゲーム</h2>
         <p>「とりの丘トリ’S大富豪」は、<strong>インストール不要・無料で遊べる大富豪ブラウザゲーム</strong>です。パソコンやスマートフォンのブラウザからアクセスして、いつでも気軽にトランプゲームの大富豪を楽しめます。</p>
         <p>一人で遊びたいときも大丈夫。個性豊かなAIキャラクターを対戦相手に選んで、CPU対戦を楽しめます。</p>
+        <a class="play-cta" href="#game-container">🎮 今すぐ大富豪をプレイする</a>
         <h2>AIキャラクターと1人で大富豪対戦</h2>
         <p>この大富豪ゲームでは、みりんてゃをはじめとするキャラクターの中から好きな対戦相手を選択できます。友達と予定を合わせなくても、<strong>1人でAIキャラクターと大富豪を対戦</strong>できます。</p>
         <p>キャラクターにはそれぞれプロフィールが用意されているので、対戦相手を選ぶところから楽しめます。</p>
