@@ -3,11 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('game-info-modal');
     const closeButton = document.getElementById('close-game-info');
     const gameScreen = document.getElementById('game-screen');
-    const setupScreen = document.getElementById('setup-screen');
 
-    // -----------------------------
-    // 「このゲームについて」モーダル
-    // -----------------------------
     const openInfoModal = () => {
         if (!modal) return;
         modal.style.display = 'block';
@@ -22,64 +18,48 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.remove('modal-open');
     };
 
-    if (openButton && modal) {
-        openButton.addEventListener('click', openInfoModal);
-    }
-
-    if (closeButton && modal) {
-        closeButton.addEventListener('click', closeInfoModal);
-    }
-
+    if (openButton && modal) openButton.addEventListener('click', openInfoModal);
+    if (closeButton && modal) closeButton.addEventListener('click', closeInfoModal);
     if (modal) {
         modal.addEventListener('click', (event) => {
             if (event.target === modal) closeInfoModal();
         });
     }
 
-    // -----------------------------
-    // ページ最下部の紹介ボタン
-    // -----------------------------
-    // SEO本文はHTMLに残すが、通常画面では表示しない。
+    // SEO本文はHTMLに残すが、ゲーム画面には常時表示しない。
     const seoContent = document.querySelector('.seo-content');
     if (seoContent) seoContent.style.display = 'none';
 
+    // 紹介ボタンはbodyやfooterには置かない。
+    // game-screenの直後に置くことで、ゲーム画面の「後」にだけ存在する通常の要素にする。
     let bottomInfoButton = document.getElementById('bottom-game-info');
-    if (!bottomInfoButton && modal) {
+    if (!bottomInfoButton && modal && gameScreen) {
         bottomInfoButton = document.createElement('button');
         bottomInfoButton.id = 'bottom-game-info';
         bottomInfoButton.type = 'button';
         bottomInfoButton.textContent = '📖 このゲームの紹介・特徴を見る';
-        // bodyの最後に追加することで、ページの最後にだけ表示する。
-        // position: fixed は使わず、スクロールについてこない通常の要素にする。
-        document.body.appendChild(bottomInfoButton);
+        gameScreen.insertAdjacentElement('afterend', bottomInfoButton);
         bottomInfoButton.addEventListener('click', openInfoModal);
     }
 
-    // ゲーム中は紹介ボタンを非表示にする。
-    // ゲーム終了後にセットアップ画面へ戻った場合は再表示する。
     const updateBottomButtonVisibility = () => {
-        if (!bottomInfoButton || !setupScreen || !gameScreen) return;
+        if (!bottomInfoButton || !gameScreen) return;
         const gameIsVisible = getComputedStyle(gameScreen).display !== 'none';
-        const setupIsVisible = getComputedStyle(setupScreen).display !== 'none';
-        bottomInfoButton.style.display = setupIsVisible && !gameIsVisible ? 'block' : 'none';
+        bottomInfoButton.hidden = !gameIsVisible;
     };
 
     updateBottomButtonVisibility();
 
-    const observerTargets = [gameScreen, setupScreen].filter(Boolean);
-    if (observerTargets.length) {
+    if (gameScreen) {
         const observer = new MutationObserver(updateBottomButtonVisibility);
-        observerTargets.forEach((target) => {
-            observer.observe(target, { attributes: true, attributeFilter: ['style', 'class'] });
+        observer.observe(gameScreen, {
+            attributes: true,
+            attributeFilter: ['style', 'class']
         });
     }
 
-    // -----------------------------
     // ゲーム退出確認モーダル
-    // -----------------------------
-    // window.confirm() の代わりにゲームデザインに合わせた専用モーダルを生成。
     let exitModal = document.getElementById('exit-game-modal');
-
     if (!exitModal) {
         exitModal = document.createElement('div');
         exitModal.id = 'exit-game-modal';
@@ -93,8 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button type="button" id="cancel-exit-game">キャンセル</button>
                     <button type="button" id="confirm-exit-game">タイトルに戻る</button>
                 </div>
-            </div>
-        `;
+            </div>`;
         document.body.appendChild(exitModal);
     }
 
@@ -115,14 +94,11 @@ document.addEventListener('DOMContentLoaded', () => {
     exitModal.addEventListener('click', (event) => {
         if (event.target === exitModal) closeExitModal();
     });
-
     exitModal.querySelector('#confirm-exit-game')?.addEventListener('click', () => {
         window.location.reload();
     });
 
-    // -----------------------------
     // ゲーム中の「タイトルに戻る」ボタン
-    // -----------------------------
     if (gameScreen && !document.getElementById('exit-game-btn')) {
         const exitButton = document.createElement('button');
         exitButton.id = 'exit-game-btn';
@@ -132,34 +108,21 @@ document.addEventListener('DOMContentLoaded', () => {
         exitButton.addEventListener('click', openExitModal);
 
         const controls = document.getElementById('controls');
-        if (controls) {
-            controls.insertAdjacentElement('afterend', exitButton);
-        } else {
-            gameScreen.appendChild(exitButton);
-        }
+        if (controls) controls.insertAdjacentElement('afterend', exitButton);
+        else gameScreen.appendChild(exitButton);
     }
 
-    // -----------------------------
-    // キーボード操作
-    // -----------------------------
     document.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') return;
-
-        if (exitModal.style.display === 'block') {
-            closeExitModal();
-        } else if (modal && modal.style.display === 'block') {
-            closeInfoModal();
-        }
+        if (exitModal.style.display === 'block') closeExitModal();
+        else if (modal && modal.style.display === 'block') closeInfoModal();
     });
 
-    // -----------------------------
-    // UI用スタイル
-    // -----------------------------
     const style = document.createElement('style');
     style.textContent = `
+        /* 固定・追従なし。game-screenの直後にある普通のページ要素 */
         #bottom-game-info {
-            /* 固定・追従させず、bodyの最後にある通常の要素として表示 */
-            position: static;
+            position: static !important;
             display: block;
             width: fit-content;
             max-width: calc(100% - 24px);
@@ -175,9 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
             box-shadow: 0 6px 18px rgba(70,90,180,.18);
             cursor: pointer;
         }
-        #bottom-game-info:hover {
-            background: #f0f7ff;
-        }
+        #bottom-game-info[hidden] { display: none !important; }
+        #bottom-game-info:hover { background: #f0f7ff; }
         #exit-game-btn {
             display: block;
             margin: 6px auto 20px;
@@ -190,22 +152,10 @@ document.addEventListener('DOMContentLoaded', () => {
             font-weight: bold;
             cursor: pointer;
         }
-        #exit-game-btn:hover {
-            background: #f5f5f5;
-        }
-        #exit-game-modal .modal-content {
-            max-width: 430px;
-            text-align: center;
-        }
-        #exit-game-modal h2 {
-            margin-top: 8px;
-            color: #555;
-        }
-        #exit-game-modal p {
-            margin: 16px 0 22px;
-            line-height: 1.8;
-            color: #666;
-        }
+        #exit-game-btn:hover { background: #f5f5f5; }
+        #exit-game-modal .modal-content { max-width: 430px; text-align: center; }
+        #exit-game-modal h2 { margin-top: 8px; color: #555; }
+        #exit-game-modal p { margin: 16px 0 22px; line-height: 1.8; color: #666; }
         .exit-modal-close {
             display: block;
             margin-left: auto;
@@ -216,12 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
             line-height: 1;
             cursor: pointer;
         }
-        .exit-modal-actions {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
+        .exit-modal-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
         .exit-modal-actions button {
             min-width: 130px;
             padding: 11px 18px;
@@ -230,30 +175,16 @@ document.addEventListener('DOMContentLoaded', () => {
             font-weight: bold;
             cursor: pointer;
         }
-        #cancel-exit-game {
-            background: #eee;
-            color: #555;
-        }
+        #cancel-exit-game { background: #eee; color: #555; }
         #confirm-exit-game {
             background: linear-gradient(45deg, #ff9a9e, #ff6b6b);
             color: white;
             box-shadow: 0 4px 12px rgba(255,107,107,.25);
         }
         @media (max-width: 600px) {
-            #bottom-game-info {
-                max-width: calc(100% - 24px);
-                margin: 20px auto 24px;
-                padding: 9px 16px;
-                font-size: .88rem;
-            }
-            #exit-game-btn {
-                margin-bottom: 16px;
-                padding: 9px 18px;
-            }
-            #exit-game-modal .modal-content {
-                width: calc(100% - 28px);
-                padding: 20px 16px 24px;
-            }
+            #bottom-game-info { max-width: calc(100% - 24px); margin: 20px auto 24px; padding: 9px 16px; font-size: .88rem; }
+            #exit-game-btn { margin-bottom: 16px; padding: 9px 18px; }
+            #exit-game-modal .modal-content { width: calc(100% - 28px); padding: 20px 16px 24px; }
         }
     `;
     document.head.appendChild(style);
